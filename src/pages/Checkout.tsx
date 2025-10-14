@@ -111,6 +111,33 @@ export default function Checkout() {
 
       if (itemsError) throw itemsError;
 
+      // Send Telegram notification
+      try {
+        await supabase.functions.invoke('send-telegram-notification', {
+          body: {
+            orderNumber: orderNumber,
+            customerName: formData.customerName.trim(),
+            customerPhone: formData.customerPhone,
+            deliveryMethod: formData.deliveryMethod,
+            deliveryAddress: formData.deliveryMethod === 'home_delivery' ? formData.deliveryAddress.trim() : undefined,
+            paymentMethod: formData.paymentMethod,
+            items: cart.map(item => ({
+              nameEn: item.nameEn,
+              nameMr: item.nameMr,
+              quantity: item.quantity,
+              price: item.price
+            })),
+            subtotal: subtotal,
+            gst: gst,
+            total: total
+          }
+        });
+        console.log('Telegram notification sent');
+      } catch (notifError) {
+        // Don't fail the order if notification fails
+        console.error('Failed to send Telegram notification:', notifError);
+      }
+
       // Clear cart and navigate to success
       clearCart();
       toast.success(language === 'en' ? 'Order placed successfully!' : 'ऑर्डर यशस्वीरित्या दिली!');
