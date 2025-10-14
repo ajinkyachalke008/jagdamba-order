@@ -63,4 +63,30 @@ All colors MUST be HSL.
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Poppins', 'Hind', sans-serif;
   }
+
+  .neon-text {
+    color: #fff;
+    text-shadow: 
+      0 0 7px hsl(24 100% 50%),
+      0 0 10px hsl(24 100% 50%),
+      0 0 21px hsl(24 100% 50%),
+      0 0 42px hsl(24 100% 50%),
+      0 0 82px hsl(24 100% 50%),
+      0 0 92px hsl(24 100% 50%),
+      0 0 102px hsl(24 100% 50%),
+      0 0 151px hsl(24 100% 50%);
+    letter-spacing: 0.05em;
+  }
+
+  .neon-text:hover {
+    text-shadow: 
+      0 0 10px hsl(24 100% 50%),
+      0 0 20px hsl(24 100% 50%),
+      0 0 30px hsl(24 100% 50%),
+      0 0 50px hsl(24 100% 50%),
+      0 0 100px hsl(24 100% 50%),
+      0 0 120px hsl(24 100% 50%),
+      0 0 140px hsl(24 100% 50%),
+      0 0 180px hsl(24 100% 50%);
+  }
 }

@@ -68,8 +68,15 @@ export const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-border text-center text-muted-foreground">
-          <p>© 2025 Hotel Jagdamba. {language === 'en' ? 'All rights reserved.' : 'सर्व हक्क राखीव.'}</p>
+        <div className="mt-8 pt-8 border-t border-border text-center">
+          <p className="text-muted-foreground mb-4">
+            © 2025 Hotel Jagdamba. {language === 'en' ? 'All rights reserved.' : 'सर्व हक्क राखीव.'}
+          </p>
+          <div className="mt-4">
+            <p className="neon-text animate-neon-glow text-sm md:text-base tracking-wider transition-all duration-300">
+              Web Developer: <span className="font-bold">AJINKYA ARUN CHALKE</span>
+            </p>
+          </div>
         </div>
       </div>
     </footer>

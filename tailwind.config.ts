@@ -103,6 +103,24 @@ export default {
           "0%": { transform: "scale(0.8)", opacity: "0" },
           "100%": { transform: "scale(1)", opacity: "1" },
         },
+        "neon-glow": {
+          "0%, 100%": { 
+            textShadow: "0 0 10px hsl(24 100% 50%), 0 0 20px hsl(24 100% 50%), 0 0 30px hsl(24 100% 50%)",
+            filter: "brightness(1)"
+          },
+          "50%": { 
+            textShadow: "0 0 20px hsl(24 100% 50%), 0 0 30px hsl(24 100% 50%), 0 0 40px hsl(24 100% 50%), 0 0 50px hsl(24 100% 50%)",
+            filter: "brightness(1.2)"
+          },
+        },
+        "neon-flicker": {
+          "0%, 19%, 21%, 23%, 25%, 54%, 56%, 100%": {
+            opacity: "1",
+          },
+          "20%, 24%, 55%": {
+            opacity: "0.85",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -113,6 +131,8 @@ export default {
         "shuffle": "shuffle 0.5s ease-in-out",
         "slide-up": "slide-up 0.4s ease-out",
         "scale-in": "scale-in 0.3s ease-out",
+        "neon-glow": "neon-glow 3s ease-in-out infinite",
+        "neon-flicker": "neon-flicker 5s linear infinite",
       },
     },
   },
