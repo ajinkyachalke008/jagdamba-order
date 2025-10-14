@@ -77,8 +77,8 @@ export default function Checkout() {
       const total = subtotal + gst;
 
       // Insert order
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
+      const { data: order, error: orderError } = await (supabase as any)
+        .from('orders' as any)
         .insert({
           order_number: orderNumber,
           customer_name: formData.customerName.trim(),
@@ -94,6 +94,7 @@ export default function Checkout() {
         .single();
 
       if (orderError) throw orderError;
+      if (!order) throw new Error('Failed to create order');
 
       // Insert order items
       const orderItems = cart.map(item => ({
@@ -105,9 +106,9 @@ export default function Checkout() {
         subtotal: item.price * item.quantity
       }));
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
+      const { error: itemsError } = await (supabase as any)
+        .from('order_items' as any)
+        .insert(orderItems as any);
 
       if (itemsError) throw itemsError;
 
@@ -141,7 +142,7 @@ export default function Checkout() {
       // Clear cart and navigate to success
       clearCart();
       toast.success(language === 'en' ? 'Order placed successfully!' : 'ऑर्डर यशस्वीरित्या दिली!');
-      navigate(`/order-success/${order.id}`);
+      navigate(`/order-success/${order!.id}`);
     } catch (error) {
       console.error('Order submission error:', error);
       toast.error(language === 'en' 

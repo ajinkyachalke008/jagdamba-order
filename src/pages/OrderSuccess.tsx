@@ -37,22 +37,23 @@ export default function OrderSuccess() {
 
   const fetchOrderDetails = async () => {
     try {
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
+      const { data: order, error: orderError } = await (supabase as any)
+        .from('orders' as any)
         .select('*')
         .eq('id', orderId)
         .single();
 
       if (orderError) throw orderError;
+      if (!order) throw new Error('Order not found');
 
-      const { data: items, error: itemsError } = await supabase
-        .from('order_items')
+      const { data: items, error: itemsError } = await (supabase as any)
+        .from('order_items' as any)
         .select('*')
         .eq('order_id', orderId);
 
       if (itemsError) throw itemsError;
 
-      setOrderData({ ...order, items });
+      setOrderData({ ...(order as any), items });
     } catch (error) {
       console.error('Error fetching order:', error);
       navigate('/');
