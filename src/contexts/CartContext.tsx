@@ -21,7 +21,6 @@ interface CartContextType {
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
   getTotal: () => number;
-  getGST: () => number;
   language: 'en' | 'mr';
   toggleLanguage: () => void;
 }
@@ -64,10 +63,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   };
 
-  const getGST = () => {
-    return Math.round(getTotal() * 0.05);
-  };
-
   const toggleLanguage = () => {
     setLanguage(prev => prev === 'en' ? 'mr' : 'en');
   };
@@ -80,7 +75,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       updateQuantity,
       clearCart,
       getTotal,
-      getGST,
       language,
       toggleLanguage
     }}>

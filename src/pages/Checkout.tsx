@@ -15,7 +15,7 @@ import { generateOrderNumber } from '@/lib/orderUtils';
 import { toast } from 'sonner';
 
 export default function Checkout() {
-  const { cart, getTotal, getGST, clearCart, language } = useCart();
+  const { cart, getTotal, clearCart, language } = useCart();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -72,9 +72,7 @@ export default function Checkout() {
 
     try {
       const orderNumber = generateOrderNumber();
-      const subtotal = getTotal();
-      const gst = getGST();
-      const total = subtotal + gst;
+      const total = getTotal();
 
       // Insert order
       const { data: order, error: orderError } = await (supabase as any)
@@ -86,8 +84,8 @@ export default function Checkout() {
           delivery_method: formData.deliveryMethod,
           delivery_address: formData.deliveryMethod === 'home_delivery' ? formData.deliveryAddress.trim() : null,
           payment_method: formData.paymentMethod,
-          subtotal: subtotal,
-          gst: gst,
+          subtotal: total,
+          gst: 0,
           total: total
         })
         .select()
@@ -128,8 +126,8 @@ export default function Checkout() {
               quantity: item.quantity,
               price: item.price
             })),
-            subtotal: subtotal,
-            gst: gst,
+            subtotal: total,
+            gst: 0,
             total: total
           }
         });
@@ -153,9 +151,7 @@ export default function Checkout() {
     }
   };
 
-  const subtotal = getTotal();
-  const gst = getGST();
-  const total = subtotal + gst;
+  const total = getTotal();
 
   return (
     <div className="min-h-screen bg-background">
@@ -334,15 +330,6 @@ export default function Checkout() {
               <Separator className="my-4" />
 
               <div className="space-y-2">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>{language === 'en' ? 'Subtotal' : 'उपएकूण'}</span>
-                  <span>₹{subtotal}</span>
-                </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>{language === 'en' ? 'GST (5%)' : 'जीएसटी (५%)'}</span>
-                  <span>₹{gst}</span>
-                </div>
-                <Separator />
                 <div className="flex justify-between text-xl font-bold text-primary">
                   <span>{language === 'en' ? 'Total' : 'एकूण'}</span>
                   <span>₹{total}</span>

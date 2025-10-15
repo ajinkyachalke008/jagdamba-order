@@ -19,8 +19,6 @@ export const generateReceiptPDF = (orderData: {
     price: number;
     subtotal: number;
   }>;
-  subtotal: number;
-  gst: number;
   total: number;
   createdAt: string;
 }) => {
@@ -67,12 +65,6 @@ export const generateReceiptPDF = (orderData: {
   yPos += 5;
   doc.line(20, yPos, 190, yPos);
   yPos += 8;
-  doc.text('Subtotal:', 120, yPos);
-  doc.text(`₹${orderData.subtotal.toFixed(2)}`, 170, yPos);
-  yPos += 7;
-  doc.text('GST (5%):', 120, yPos);
-  doc.text(`₹${orderData.gst.toFixed(2)}`, 170, yPos);
-  yPos += 7;
   doc.setFont('helvetica', 'bold');
   doc.text('Total:', 120, yPos);
   doc.text(`₹${orderData.total.toFixed(2)}`, 170, yPos);

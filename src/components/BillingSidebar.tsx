@@ -5,7 +5,7 @@ import { Minus, Plus, Trash2, ShoppingCart } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 export const BillingSidebar = () => {
-  const { cart, updateQuantity, removeFromCart, getTotal, getGST, language } = useCart();
+  const { cart, updateQuantity, removeFromCart, getTotal, language } = useCart();
 
   if (cart.length === 0) {
     return (
@@ -20,9 +20,7 @@ export const BillingSidebar = () => {
     );
   }
 
-  const subtotal = getTotal();
-  const gst = getGST();
-  const total = subtotal + gst;
+  const total = getTotal();
 
   return (
     <div className="fixed right-4 top-24 w-80 max-w-[calc(100vw-2rem)] max-h-[calc(100vh-7rem)] overflow-y-auto hidden lg:block animate-slide-up">
@@ -83,15 +81,6 @@ export const BillingSidebar = () => {
         <Separator className="mb-4" />
 
         <div className="space-y-2 mb-4">
-          <div className="flex justify-between text-muted-foreground">
-            <span>{language === 'en' ? 'Subtotal' : 'उपएकूण'}</span>
-            <span>₹{subtotal}</span>
-          </div>
-          <div className="flex justify-between text-muted-foreground">
-            <span>{language === 'en' ? 'GST (5%)' : 'जीएसटी (५%)'}</span>
-            <span>₹{gst}</span>
-          </div>
-          <Separator />
           <div className="flex justify-between text-xl font-bold text-primary">
             <span>{language === 'en' ? 'Total' : 'एकूण'}</span>
             <span className="animate-pulse">₹{total}</span>

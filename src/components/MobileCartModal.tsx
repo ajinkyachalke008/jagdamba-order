@@ -16,12 +16,10 @@ interface MobileCartModalProps {
 }
 
 export const MobileCartModal = ({ isOpen, onClose }: MobileCartModalProps) => {
-  const { cart, updateQuantity, removeFromCart, getTotal, getGST, language } = useCart();
+  const { cart, updateQuantity, removeFromCart, getTotal, language } = useCart();
   const navigate = useNavigate();
 
-  const subtotal = getTotal();
-  const gst = getGST();
-  const total = subtotal + gst;
+  const total = getTotal();
 
   const handleCheckout = () => {
     onClose();
@@ -89,15 +87,6 @@ export const MobileCartModal = ({ isOpen, onClose }: MobileCartModalProps) => {
 
           <div className="border-t border-border pt-4 pb-2">
             <div className="space-y-2 mb-4">
-              <div className="flex justify-between text-muted-foreground">
-                <span>{language === 'en' ? 'Subtotal' : 'उपएकूण'}</span>
-                <span>₹{subtotal}</span>
-              </div>
-              <div className="flex justify-between text-muted-foreground">
-                <span>{language === 'en' ? 'GST (5%)' : 'जीएसटी (५%)'}</span>
-                <span>₹{gst}</span>
-              </div>
-              <Separator />
               <div className="flex justify-between text-xl font-bold text-primary">
                 <span>{language === 'en' ? 'Total' : 'एकूण'}</span>
                 <span>₹{total}</span>

@@ -78,8 +78,6 @@ export default function OrderSuccess() {
         price: parseFloat(item.price),
         subtotal: parseFloat(item.subtotal)
       })),
-      subtotal: parseFloat(orderData.subtotal),
-      gst: parseFloat(orderData.gst),
       total: parseFloat(orderData.total),
       createdAt: orderData.created_at
     });
@@ -197,15 +195,6 @@ export default function OrderSuccess() {
 
             {/* Totals */}
             <div className="space-y-2">
-              <div className="flex justify-between text-muted-foreground">
-                <span>{language === 'en' ? 'Subtotal' : 'उपएकूण'}</span>
-                <span>₹{parseFloat(orderData.subtotal).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-muted-foreground">
-                <span>{language === 'en' ? 'GST (5%)' : 'जीएसटी (५%)'}</span>
-                <span>₹{parseFloat(orderData.gst).toFixed(2)}</span>
-              </div>
-              <Separator />
               <div className="flex justify-between text-2xl font-bold text-primary">
                 <span>{language === 'en' ? 'Total' : 'एकूण'}</span>
                 <span>₹{parseFloat(orderData.total).toFixed(2)}</span>
