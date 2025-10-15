@@ -41,6 +41,16 @@ serve(async (req) => {
       `• ${item.nameEn} x ${item.quantity} - ₹${item.price * item.quantity}`
     ).join('\n');
 
+    // Extract location link if present
+    let addressText = orderData.deliveryAddress || '';
+    let locationLink = '';
+    
+    if (orderData.deliveryAddress && orderData.deliveryAddress.includes('Location: ')) {
+      const parts = orderData.deliveryAddress.split(' | Location: ');
+      addressText = parts[0];
+      locationLink = parts[1] || '';
+    }
+
     // Create the notification message
     const message = `
 🔔 *New Order Received!*
@@ -52,7 +62,8 @@ serve(async (req) => {
 • Phone: ${orderData.customerPhone}
 
 🛵 *Delivery:* ${orderData.deliveryMethod === 'home_delivery' ? 'Home Delivery' : 'Pickup'}
-${orderData.deliveryAddress ? `📍 Address: ${orderData.deliveryAddress}` : ''}
+${addressText ? `📍 Address: ${addressText}` : ''}
+${locationLink ? `🗺️ [View Location on Maps](${locationLink})` : ''}
 
 💰 *Payment:* ${orderData.paymentMethod === 'cash' ? 'Cash on Delivery/Pickup' : 'Online Payment'}
 

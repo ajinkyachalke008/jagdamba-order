@@ -224,7 +224,7 @@ export default function OrderSuccess() {
             </Button>
 
             <Button
-              onClick={() => window.location.href = 'tel:+919876543210'}
+              onClick={() => window.location.href = 'tel:+918380809079'}
               variant="outline"
               size="lg"
               className="w-full border-primary hover:bg-primary/10"

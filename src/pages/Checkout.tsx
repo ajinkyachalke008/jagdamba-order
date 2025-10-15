@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, MapPin, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { generateOrderNumber } from '@/lib/orderUtils';
 import { toast } from 'sonner';
@@ -18,6 +18,8 @@ export default function Checkout() {
   const { cart, getTotal, clearCart, language } = useCart();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCapturingLocation, setIsCapturingLocation] = useState(false);
+  const [locationLink, setLocationLink] = useState('');
 
   const [formData, setFormData] = useState({
     customerName: '',
@@ -34,6 +36,30 @@ export default function Checkout() {
       navigate('/');
     }
   }, [cart, navigate]);
+
+  const handleShareLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error(language === 'en' ? 'Geolocation is not supported by your browser' : 'तुमचा ब्राउझर स्थान शेअरिंग सपोर्ट करत नाही');
+      return;
+    }
+
+    setIsCapturingLocation(true);
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+        setLocationLink(mapsLink);
+        setIsCapturingLocation(false);
+        toast.success(language === 'en' ? 'Location captured successfully!' : 'स्थान यशस्वीरित्या कॅप्चर केले!');
+      },
+      (error) => {
+        setIsCapturingLocation(false);
+        toast.error(language === 'en' ? 'Failed to capture location. Please enable location permissions.' : 'स्थान कॅप्चर करता आले नाही. कृपया स्थान परवानगी सक्षम करा.');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -82,7 +108,9 @@ export default function Checkout() {
           customer_name: formData.customerName.trim(),
           customer_phone: formData.customerPhone,
           delivery_method: formData.deliveryMethod,
-          delivery_address: formData.deliveryMethod === 'home_delivery' ? formData.deliveryAddress.trim() : null,
+          delivery_address: formData.deliveryMethod === 'home_delivery' 
+            ? (locationLink ? `${formData.deliveryAddress.trim()} | Location: ${locationLink}` : formData.deliveryAddress.trim())
+            : null,
           payment_method: formData.paymentMethod,
           subtotal: total,
           gst: 0,
@@ -118,7 +146,9 @@ export default function Checkout() {
             customerName: formData.customerName.trim(),
             customerPhone: formData.customerPhone,
             deliveryMethod: formData.deliveryMethod,
-            deliveryAddress: formData.deliveryMethod === 'home_delivery' ? formData.deliveryAddress.trim() : undefined,
+            deliveryAddress: formData.deliveryMethod === 'home_delivery' 
+              ? (locationLink ? `${formData.deliveryAddress.trim()} | Location: ${locationLink}` : formData.deliveryAddress.trim())
+              : undefined,
             paymentMethod: formData.paymentMethod,
             items: cart.map(item => ({
               nameEn: item.nameEn,
@@ -245,20 +275,75 @@ export default function Checkout() {
                   </RadioGroup>
 
                   {formData.deliveryMethod === 'home_delivery' && (
-                    <div className="mt-4">
-                      <Label htmlFor="address">
-                        {language === 'en' ? 'Delivery Address' : 'डिलिव्हरी पत्ता'} *
-                      </Label>
-                      <Input
-                        id="address"
-                        value={formData.deliveryAddress}
-                        onChange={(e) => setFormData({...formData, deliveryAddress: e.target.value})}
-                        placeholder={language === 'en' ? 'Enter your complete address' : 'तुमचा संपूर्ण पत्ता टाका'}
-                        className={errors.deliveryAddress ? 'border-destructive' : ''}
-                      />
-                      {errors.deliveryAddress && (
-                        <p className="text-sm text-destructive mt-1">{errors.deliveryAddress}</p>
-                      )}
+                    <div className="mt-4 space-y-3">
+                      <div>
+                        <Label htmlFor="address">
+                          {language === 'en' ? 'Delivery Address' : 'डिलिव्हरी पत्ता'} *
+                        </Label>
+                        <Input
+                          id="address"
+                          value={formData.deliveryAddress}
+                          onChange={(e) => setFormData({...formData, deliveryAddress: e.target.value})}
+                          placeholder={language === 'en' ? 'Enter your complete address' : 'तुमचा संपूर्ण पत्ता टाका'}
+                          className={errors.deliveryAddress ? 'border-destructive' : ''}
+                        />
+                        {errors.deliveryAddress && (
+                          <p className="text-sm text-destructive mt-1">{errors.deliveryAddress}</p>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleShareLocation}
+                          disabled={isCapturingLocation}
+                          className="w-full border-primary hover:bg-primary/10"
+                        >
+                          {isCapturingLocation ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              {language === 'en' ? 'Capturing Location...' : 'स्थान कॅप्चर करत आहे...'}
+                            </>
+                          ) : locationLink ? (
+                            <>
+                              <CheckCircle2 className="mr-2 h-4 w-4 text-primary" />
+                              {language === 'en' ? 'Location Captured' : 'स्थान कॅप्चर केले'}
+                            </>
+                          ) : (
+                            <>
+                              <MapPin className="mr-2 h-4 w-4" />
+                              {language === 'en' ? 'Share Your Location' : 'तुमचे स्थान शेअर करा'}
+                            </>
+                          )}
+                        </Button>
+                        
+                        {locationLink && (
+                          <div className="mt-2 flex items-center justify-between bg-secondary p-2 rounded-lg">
+                            <a 
+                              href={locationLink} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-sm text-primary hover:underline truncate flex-1"
+                            >
+                              {language === 'en' ? 'View on Maps' : 'मॅपवर पहा'}
+                            </a>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setLocationLink('')}
+                              className="ml-2 h-6 text-xs"
+                            >
+                              {language === 'en' ? 'Clear' : 'साफ करा'}
+                            </Button>
+                          </div>
+                        )}
+                        
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {language === 'en' ? 'Optional: Share your precise location for faster delivery' : 'पर्यायी: जलद डिलिव्हरीसाठी तुमचे अचूक स्थान शेअर करा'}
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
