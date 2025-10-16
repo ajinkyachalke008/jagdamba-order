@@ -13,6 +13,8 @@ import { ArrowLeft, Loader2, MapPin, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { generateOrderNumber } from '@/lib/orderUtils';
 import { toast } from 'sonner';
+import gPayQR from '@/assets/gpay-qr.jpg';
+import phonePeQR from '@/assets/phonepe-qr.jpg';
 
 export default function Checkout() {
   const { cart, getTotal, clearCart, language } = useCart();
@@ -373,10 +375,57 @@ export default function Checkout() {
                       </Label>
                     </div>
                   </RadioGroup>
+
+                  {formData.paymentMethod === 'online' && (
+                    <Card className="mt-4 p-6 border-primary shadow-[0_0_25px_hsl(var(--primary)/0.2)] animate-fade-in">
+                      <h3 className="text-xl font-bold text-primary mb-4 text-center">
+                        💳 {language === 'en' ? 'Complete Your Payment' : 'तुमचे पेमेंट पूर्ण करा'}
+                      </h3>
+                      
+                      <div className="grid md:grid-cols-2 gap-4 mb-4">
+                        {/* PhonePe QR Card */}
+                        <Card className="p-4 bg-card border-border hover:border-primary transition-all hover:scale-105">
+                          <div className="text-center">
+                            <p className="font-bold text-lg mb-2 text-primary">PhonePe</p>
+                            <img 
+                              src={phonePeQR} 
+                              alt="PhonePe QR Code" 
+                              className="w-full max-w-[250px] mx-auto rounded-lg" 
+                            />
+                            <p className="text-xs text-muted-foreground mt-2">Mr. SOMNATH RAJENDRA CHIKANE</p>
+                          </div>
+                        </Card>
+                        
+                        {/* Google Pay QR Card */}
+                        <Card className="p-4 bg-card border-border hover:border-primary transition-all hover:scale-105">
+                          <div className="text-center">
+                            <p className="font-bold text-lg mb-2 text-primary">Google Pay</p>
+                            <img 
+                              src={gPayQR} 
+                              alt="Google Pay QR Code" 
+                              className="w-full max-w-[250px] mx-auto rounded-lg" 
+                            />
+                            <p className="text-xs text-muted-foreground mt-2">chikanesomnath956@okaxis</p>
+                          </div>
+                        </Card>
+                      </div>
+                      
+                      <div className="text-center space-y-2">
+                        <p className="text-lg font-bold text-primary">
+                          {language === 'en' ? `Scan & Pay: ₹${total}` : `स्कॅन करा आणि पेमेंट करा: ₹${total}`}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {language === 'en' 
+                            ? 'After completing payment, click "Confirm Order" below' 
+                            : 'पेमेंट पूर्ण केल्यानंतर, खालील "ऑर्डर कन्फर्म करा" वर क्लिक करा'}
+                        </p>
+                      </div>
+                    </Card>
+                  )}
                 </div>
 
                 <Button 
-                  type="submit" 
+                  type="submit"
                   disabled={isSubmitting}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_25px_hsl(var(--primary)/0.6)]"
                   size="lg"
