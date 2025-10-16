@@ -51,16 +51,16 @@ export const MenuCard = ({ item }: MenuCardProps) => {
         <Button
           onClick={handleAddToCart}
           disabled={isAdding}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground group-hover:shadow-[0_0_15px_hsl(var(--primary)/0.5)] transition-all"
+          className="w-full h-14 text-lg rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_25px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_35px_hsl(var(--primary)/0.9)] transition-all animate-glow-pulse hover:scale-[1.02] duration-300 font-semibold"
         >
           {isAdding ? (
             <>
-              <Check className="mr-2 h-4 w-4" />
+              <Check className="mr-2 h-5 w-5" />
               {language === 'en' ? 'Added!' : 'जोडले!'}
             </>
           ) : (
             <>
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-5 w-5" />
               {language === 'en' ? 'Order Now' : 'ऑर्डर करा'}
             </>
           )}
