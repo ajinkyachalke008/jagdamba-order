@@ -51,7 +51,7 @@ export const MenuCard = ({ item }: MenuCardProps) => {
         <Button
           onClick={handleAddToCart}
           disabled={isAdding}
-          className="w-full h-14 text-lg rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_25px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_35px_hsl(var(--primary)/0.9)] transition-all animate-glow-pulse hover:scale-[1.02] duration-300 font-semibold"
+          className="w-full h-14 text-lg rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_30px_hsl(var(--primary)/0.7),0_0_60px_hsl(var(--primary)/0.4)] hover:shadow-[0_0_45px_hsl(var(--primary)/1),0_0_80px_hsl(var(--primary)/0.6)] transition-all animate-glow-pulse hover:scale-[1.02] duration-300 font-semibold"
         >
           {isAdding ? (
             <>
