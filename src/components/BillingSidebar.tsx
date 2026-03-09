@@ -1,11 +1,13 @@
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Minus, Plus, Trash2, ShoppingCart } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 export const BillingSidebar = () => {
   const { cart, updateQuantity, removeFromCart, getTotal, language } = useCart();
+  const navigate = useNavigate();
 
   if (cart.length === 0) {
     return (
@@ -88,7 +90,7 @@ export const BillingSidebar = () => {
         </div>
 
         <Button 
-          onClick={() => window.location.href = '/checkout'}
+          onClick={() => navigate('/checkout')}
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_25px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_35px_hsl(var(--primary)/0.8)] transition-all"
           size="lg"
         >
