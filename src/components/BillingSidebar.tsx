@@ -90,7 +90,7 @@ export const BillingSidebar = () => {
         </div>
 
         <Button 
-          onClick={() => window.location.href = '/checkout'}
+          onClick={() => navigate('/checkout')}
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_25px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_35px_hsl(var(--primary)/0.8)] transition-all"
           size="lg"
         >
