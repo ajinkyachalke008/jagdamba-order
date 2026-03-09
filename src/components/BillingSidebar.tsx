@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 
 export const BillingSidebar = () => {
   const { cart, updateQuantity, removeFromCart, getTotal, language } = useCart();
+  const navigate = useNavigate();
 
   if (cart.length === 0) {
     return (
