@@ -2,11 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
+  /* Dark mode (default) */
   :root {
     --background: 0 0% 5.1%;
     --foreground: 0 0% 100%;
@@ -38,15 +35,48 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
-    /* Jagdamba Brand Colors */
     --orange-glow: 24 100% 50%;
     --deep-black: 0 0% 5.1%;
     --highlight-red: 0 85% 58%;
     
-    /* Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(var(--deep-black)), hsl(24 100% 20%));
     --gradient-card: linear-gradient(180deg, hsl(0 0% 8%), hsl(0 0% 6%));
     --glow-orange: 0 0 20px hsl(var(--orange-glow) / 0.5);
+  }
+
+  /* Light mode */
+  .light {
+    --background: 30 20% 96%;
+    --foreground: 0 0% 10%;
+
+    --card: 30 15% 98%;
+    --card-foreground: 0 0% 10%;
+
+    --popover: 30 15% 98%;
+    --popover-foreground: 0 0% 10%;
+
+    --primary: 24 100% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 30 10% 90%;
+    --secondary-foreground: 0 0% 15%;
+
+    --muted: 30 10% 88%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 0 85% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 85% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 10% 82%;
+    --input: 30 10% 82%;
+    --ring: 24 100% 45%;
+
+    --orange-glow: 24 100% 45%;
+    --deep-black: 30 20% 96%;
+    --highlight-red: 0 85% 50%;
   }
 }
 
@@ -76,6 +106,13 @@ All colors MUST be HSL.
       0 0 102px hsl(24 100% 50%),
       0 0 151px hsl(24 100% 50%);
     letter-spacing: 0.05em;
+  }
+
+  .light .neon-text {
+    color: hsl(24 100% 45%);
+    text-shadow: 
+      0 0 5px hsl(24 100% 50% / 0.3),
+      0 0 10px hsl(24 100% 50% / 0.2);
   }
 
   .neon-text:hover {
