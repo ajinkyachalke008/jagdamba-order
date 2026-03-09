@@ -1,11 +1,13 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export interface MenuItem {
   id: string;
   nameEn: string;
   nameMr: string;
+  nameHi?: string;
   descriptionEn?: string;
   descriptionMr?: string;
+  descriptionHi?: string;
   price: number;
   category: string;
 }
@@ -14,6 +16,8 @@ export interface CartItem extends MenuItem {
   quantity: number;
 }
 
+export type Language = 'en' | 'mr' | 'hi';
+
 interface CartContextType {
   cart: CartItem[];
   addToCart: (item: MenuItem) => void;
@@ -21,15 +25,27 @@ interface CartContextType {
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
   getTotal: () => number;
-  language: 'en' | 'mr';
+  language: Language;
+  setLanguage: (lang: Language) => void;
   toggleLanguage: () => void;
+  loyaltyPoints: number;
+  addLoyaltyPoints: (amount: number) => void;
+  redeemPoints: (points: number) => boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [language, setLanguage] = useState<'en' | 'mr'>('en');
+  const [language, setLanguageState] = useState<Language>('en');
+  const [loyaltyPoints, setLoyaltyPoints] = useState<number>(() => {
+    const stored = localStorage.getItem('jagdamba_loyalty_points');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('jagdamba_loyalty_points', loyaltyPoints.toString());
+  }, [loyaltyPoints]);
 
   const addToCart = (item: MenuItem) => {
     setCart(prev => {
@@ -63,8 +79,28 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   };
 
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+  };
+
   const toggleLanguage = () => {
-    setLanguage(prev => prev === 'en' ? 'mr' : 'en');
+    setLanguageState(prev => {
+      if (prev === 'en') return 'mr';
+      if (prev === 'mr') return 'hi';
+      return 'en';
+    });
+  };
+
+  const addLoyaltyPoints = (amount: number) => {
+    // 1 point per ₹10 spent
+    const points = Math.floor(amount / 10);
+    setLoyaltyPoints(prev => prev + points);
+  };
+
+  const redeemPoints = (points: number): boolean => {
+    if (points > loyaltyPoints) return false;
+    setLoyaltyPoints(prev => prev - points);
+    return true;
   };
 
   return (
@@ -76,7 +112,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       clearCart,
       getTotal,
       language,
-      toggleLanguage
+      setLanguage,
+      toggleLanguage,
+      loyaltyPoints,
+      addLoyaltyPoints,
+      redeemPoints
     }}>
       {children}
     </CartContext.Provider>

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { MobileCartModal } from './MobileCartModal';
+import { t } from '@/lib/translations';
 
 export const MobileCartButton = () => {
   const { cart, language } = useCart();
@@ -30,7 +31,7 @@ export const MobileCartButton = () => {
               </Badge>
             </div>
             <span className="text-primary-foreground whitespace-nowrap">
-              {language === 'en' ? 'View Cart' : 'कार्ट पहा'}
+              {t('viewCart', language)}
             </span>
           </div>
         </Button>

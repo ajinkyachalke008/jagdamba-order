@@ -1,6 +1,6 @@
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus, Trash2, ShoppingCart, X } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingCart } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import {
   Sheet,
@@ -9,6 +9,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { useNavigate } from 'react-router-dom';
+import { t, getName } from '@/lib/translations';
 
 interface MobileCartModalProps {
   isOpen: boolean;
@@ -32,7 +33,7 @@ export const MobileCartModal = ({ isOpen, onClose }: MobileCartModalProps) => {
         <SheetHeader>
           <SheetTitle className="text-2xl font-bold text-primary flex items-center gap-2">
             <ShoppingCart className="h-6 w-6" />
-            {language === 'en' ? 'Your Order' : 'तुमची ऑर्डर'}
+            {t('yourOrder', language)}
           </SheetTitle>
         </SheetHeader>
 
@@ -43,7 +44,7 @@ export const MobileCartModal = ({ isOpen, onClose }: MobileCartModalProps) => {
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
                     <p className="font-semibold text-foreground">
-                      {language === 'en' ? item.nameEn : item.nameMr}
+                      {getName(item, language)}
                     </p>
                     <p className="text-sm text-muted-foreground">₹{item.price}</p>
                   </div>
@@ -88,7 +89,7 @@ export const MobileCartModal = ({ isOpen, onClose }: MobileCartModalProps) => {
           <div className="border-t border-border pt-4 pb-2">
             <div className="space-y-2 mb-4">
               <div className="flex justify-between text-xl font-bold text-primary">
-                <span>{language === 'en' ? 'Total' : 'एकूण'}</span>
+                <span>{t('total', language)}</span>
                 <span>₹{total}</span>
               </div>
             </div>
@@ -99,7 +100,7 @@ export const MobileCartModal = ({ isOpen, onClose }: MobileCartModalProps) => {
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_25px_hsl(var(--primary)/0.6)]"
                 size="lg"
               >
-                {language === 'en' ? 'Proceed to Checkout' : 'चेकआउट करा'}
+                {t('proceedToCheckout', language)}
               </Button>
               <Button 
                 onClick={onClose}
@@ -107,7 +108,7 @@ export const MobileCartModal = ({ isOpen, onClose }: MobileCartModalProps) => {
                 className="w-full"
                 size="lg"
               >
-                {language === 'en' ? 'Continue Shopping' : 'खरेदी सुरू ठेवा'}
+                {t('continueShopping', language)}
               </Button>
             </div>
           </div>

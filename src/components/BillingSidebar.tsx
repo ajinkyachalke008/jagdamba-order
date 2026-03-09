@@ -2,8 +2,9 @@ import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { Minus, Plus, Trash2, ShoppingCart } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingCart, Clock } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { t, getName } from '@/lib/translations';
 
 export const BillingSidebar = () => {
   const { cart, updateQuantity, removeFromCart, getTotal, language } = useCart();
@@ -15,7 +16,7 @@ export const BillingSidebar = () => {
         <Card className="bg-card border-border p-6 text-center">
           <ShoppingCart className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
           <p className="text-muted-foreground">
-            {language === 'en' ? 'Your cart is empty' : 'तुमची कार्ट रिकामी आहे'}
+            {t('cartEmpty', language)}
           </p>
         </Card>
       </div>
@@ -29,8 +30,16 @@ export const BillingSidebar = () => {
       <Card className="bg-card border-primary shadow-[0_0_30px_hsl(var(--primary)/0.2)] p-6">
         <h3 className="text-2xl font-bold mb-4 text-primary flex items-center gap-2">
           <ShoppingCart className="h-6 w-6" />
-          {language === 'en' ? 'Your Order' : 'तुमची ऑर्डर'}
+          {t('yourOrder', language)}
         </h3>
+
+        {/* Delivery Time Estimate */}
+        <div className="flex items-center gap-2 mb-4 p-2 rounded-lg bg-primary/10 text-sm">
+          <Clock className="h-4 w-4 text-primary" />
+          <span className="text-muted-foreground">
+            {t('estimatedTime', language)}: <span className="text-primary font-semibold">20-30 min</span>
+          </span>
+        </div>
 
         <div className="space-y-4 mb-6">
           {cart.map(item => (
@@ -38,7 +47,7 @@ export const BillingSidebar = () => {
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1">
                   <p className="font-semibold text-foreground">
-                    {language === 'en' ? item.nameEn : item.nameMr}
+                    {getName(item, language)}
                   </p>
                   <p className="text-sm text-muted-foreground">₹{item.price}</p>
                 </div>
@@ -84,7 +93,7 @@ export const BillingSidebar = () => {
 
         <div className="space-y-2 mb-4">
           <div className="flex justify-between text-xl font-bold text-primary">
-            <span>{language === 'en' ? 'Total' : 'एकूण'}</span>
+            <span>{t('total', language)}</span>
             <span className="animate-pulse">₹{total}</span>
           </div>
         </div>
@@ -94,7 +103,7 @@ export const BillingSidebar = () => {
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_25px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_35px_hsl(var(--primary)/0.8)] transition-all"
           size="lg"
         >
-          {language === 'en' ? 'Proceed to Checkout' : 'चेकआउट करा'}
+          {t('proceedToCheckout', language)}
         </Button>
       </Card>
     </div>

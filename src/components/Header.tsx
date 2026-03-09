@@ -1,10 +1,14 @@
-import { Phone, Globe } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import logo from '@/assets/jagdamba-logo.jpg';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from './ThemeToggle';
+import { LanguageSelector } from './LanguageSelector';
+import { LoyaltyBadge } from './LoyaltyBadge';
+import { t } from '@/lib/translations';
 
 export const Header = () => {
-  const { language, toggleLanguage } = useCart();
+  const { language } = useCart();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -19,28 +23,23 @@ export const Header = () => {
 
         <nav className="hidden md:flex items-center gap-6">
           <a href="#home" className="text-foreground hover:text-primary transition-colors">
-            {language === 'en' ? 'Home' : 'मुख्य'}
+            {t('home', language)}
           </a>
           <a href="#menu" className="text-foreground hover:text-primary transition-colors">
-            {language === 'en' ? 'Menu' : 'मेनू'}
+            {t('menu', language)}
           </a>
           <a href="#about" className="text-foreground hover:text-primary transition-colors">
-            {language === 'en' ? 'About' : 'बद्दल'}
+            {t('about', language)}
           </a>
           <a href="#contact" className="text-foreground hover:text-primary transition-colors">
-            {language === 'en' ? 'Contact' : 'संपर्क'}
+            {t('contact', language)}
           </a>
         </nav>
 
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleLanguage}
-            className="hover:bg-primary/20"
-          >
-            <Globe className="h-5 w-5" />
-          </Button>
+        <div className="flex items-center gap-2">
+          <LoyaltyBadge />
+          <ThemeToggle />
+          <LanguageSelector />
           <Button
             variant="default"
             size="sm"
@@ -49,7 +48,7 @@ export const Header = () => {
           >
             <a href="tel:8380809079">
               <Phone className="h-4 w-4 mr-2" />
-              {language === 'en' ? 'Call Now' : 'कॉल करा'}
+              <span className="hidden sm:inline">{t('callNow', language)}</span>
             </a>
           </Button>
         </div>

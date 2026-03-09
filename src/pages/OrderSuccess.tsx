@@ -6,10 +6,11 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { CheckCircle, Download, Home, Phone, Loader2 } from 'lucide-react';
+import { CheckCircle, Download, Home, Phone, Loader2, Clock, Star } from 'lucide-react';
 import { generateReceiptPDF } from '@/lib/orderUtils';
 import confetti from 'canvas-confetti';
 import { useCart } from '@/contexts/CartContext';
+import { t } from '@/lib/translations';
 import logoImage from '@/assets/jagdamba-logo.jpg';
 
 export default function OrderSuccess() {
@@ -27,7 +28,6 @@ export default function OrderSuccess() {
 
     fetchOrderDetails();
     
-    // Trigger confetti
     confetti({
       particleCount: 100,
       spread: 70,
@@ -93,9 +93,10 @@ export default function OrderSuccess() {
     );
   }
 
-  if (!orderData) {
-    return null;
-  }
+  if (!orderData) return null;
+
+  const pointsEarned = Math.floor(parseFloat(orderData.total) / 10);
+  const isDelivery = orderData.delivery_method !== 'pickup';
 
   return (
     <div className="min-h-screen bg-background">
@@ -114,23 +115,41 @@ export default function OrderSuccess() {
             </div>
             <CheckCircle className="h-20 w-20 text-primary mx-auto mb-4 animate-bounce" />
             <h1 className="text-4xl font-bold mb-2 text-primary">
-              {language === 'en' ? 'Order Placed Successfully!' : 'ऑर्डर यशस्वीरित्या दिली!'}
+              {t('orderSuccess', language)}
             </h1>
             <p className="text-muted-foreground text-lg">
-              {language === 'en' 
-                ? 'Thank you for your order. Your food will be ready soon!' 
-                : 'तुमच्या ऑर्डरसाठी धन्यवाद. तुमचे जेवण लवकरच तयार होईल!'}
+              {t('thankYou', language)}
             </p>
+          </div>
+
+          {/* Delivery Time & Loyalty Points Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <Card className="bg-card border-border p-4 flex items-center gap-3">
+              <Clock className="h-8 w-8 text-primary" />
+              <div>
+                <p className="font-bold text-foreground">{t('estimatedTime', language)}</p>
+                <p className="text-sm text-primary font-semibold">
+                  {isDelivery ? t('deliveryTime', language) : t('prepTime', language)}
+                </p>
+              </div>
+            </Card>
+            <Card className="bg-card border-border p-4 flex items-center gap-3">
+              <Star className="h-8 w-8 text-primary fill-primary" />
+              <div>
+                <p className="font-bold text-foreground">{t('pointsEarned', language)}</p>
+                <p className="text-sm text-primary font-semibold">+{pointsEarned} {t('loyaltyPoints', language)}</p>
+              </div>
+            </Card>
           </div>
 
           {/* Order Receipt */}
           <Card className="bg-card border-primary shadow-[0_0_30px_hsl(var(--primary)/0.2)] p-8 mb-6 animate-slide-up">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-foreground mb-2">
-                {language === 'en' ? 'Order Receipt' : 'ऑर्डर पावती'}
+                {t('orderReceipt', language)}
               </h2>
               <p className="text-muted-foreground">
-                {language === 'en' ? 'Order Number' : 'ऑर्डर नंबर'}: <span className="font-mono text-primary font-bold">{orderData.order_number}</span>
+                {t('orderNumber', language)}: <span className="font-mono text-primary font-bold">{orderData.order_number}</span>
               </p>
               <p className="text-sm text-muted-foreground">
                 {new Date(orderData.created_at).toLocaleString()}
@@ -139,40 +158,36 @@ export default function OrderSuccess() {
 
             <Separator className="my-6" />
 
-            {/* Customer Details */}
             <div className="mb-6 grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">{language === 'en' ? 'Customer Name' : 'ग्राहकाचे नाव'}</p>
+                <p className="text-sm text-muted-foreground">{t('customerName', language)}</p>
                 <p className="font-semibold">{orderData.customer_name}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">{language === 'en' ? 'Phone Number' : 'फोन नंबर'}</p>
+                <p className="text-sm text-muted-foreground">{t('phoneNumber', language)}</p>
                 <p className="font-semibold">{orderData.customer_phone}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">{language === 'en' ? 'Delivery Method' : 'डिलिव्हरी पद्धत'}</p>
+                <p className="text-sm text-muted-foreground">{t('deliveryMethod', language)}</p>
                 <p className="font-semibold">
                   {orderData.delivery_method === 'pickup' 
-                    ? (language === 'en' ? 'Pickup' : 'पिकअप')
-                    : (language === 'en' ? 'Home Delivery' : 'होम डिलिव्हरी')}
+                    ? t('pickup', language)
+                    : t('homeDelivery', language)}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">{language === 'en' ? 'Payment Method' : 'पेमेंट पद्धत'}</p>
+                <p className="text-sm text-muted-foreground">{t('paymentMethod', language)}</p>
                 <p className="font-semibold">
-                  {orderData.payment_method === 'cash'
-                    ? (language === 'en' ? 'Cash' : 'रोख')
-                    : (language === 'en' ? 'Online' : 'ऑनलाईन')}
+                  {orderData.payment_method === 'cash' ? t('cash', language) : t('online', language)}
                 </p>
               </div>
             </div>
 
             <Separator className="my-6" />
 
-            {/* Order Items */}
             <div className="mb-6">
               <h3 className="font-bold text-lg mb-4 text-foreground">
-                {language === 'en' ? 'Order Items' : 'ऑर्डर आयटम'}
+                {t('orderItems', language)}
               </h3>
               <div className="space-y-3">
                 {orderData.items.map((item: any, index: number) => (
@@ -182,7 +197,7 @@ export default function OrderSuccess() {
                         {language === 'en' ? item.item_name_en : item.item_name_mr}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {language === 'en' ? 'Qty' : 'प्रमाण'}: {item.quantity} × ₹{parseFloat(item.price).toFixed(2)}
+                        {t('qty', language)}: {item.quantity} × ₹{parseFloat(item.price).toFixed(2)}
                       </p>
                     </div>
                     <span className="font-bold text-primary">₹{parseFloat(item.subtotal).toFixed(2)}</span>
@@ -193,10 +208,9 @@ export default function OrderSuccess() {
 
             <Separator className="my-6" />
 
-            {/* Totals */}
             <div className="space-y-2">
               <div className="flex justify-between text-2xl font-bold text-primary">
-                <span>{language === 'en' ? 'Total' : 'एकूण'}</span>
+                <span>{t('total', language)}</span>
                 <span>₹{parseFloat(orderData.total).toFixed(2)}</span>
               </div>
             </div>
@@ -211,7 +225,7 @@ export default function OrderSuccess() {
               className="w-full border-primary hover:bg-primary/10"
             >
               <Download className="mr-2 h-5 w-5" />
-              {language === 'en' ? 'Download Receipt' : 'पावती डाउनलोड करा'}
+              {t('downloadReceipt', language)}
             </Button>
             
             <Button
@@ -220,7 +234,7 @@ export default function OrderSuccess() {
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Home className="mr-2 h-5 w-5" />
-              {language === 'en' ? 'Place Another Order' : 'आणखी ऑर्डर द्या'}
+              {t('placeAnotherOrder', language)}
             </Button>
 
             <Button
@@ -230,7 +244,7 @@ export default function OrderSuccess() {
               className="w-full border-primary hover:bg-primary/10"
             >
               <Phone className="mr-2 h-5 w-5" />
-              {language === 'en' ? 'Call Hotel' : 'हॉटेलला कॉल करा'}
+              {t('callHotel', language)}
             </Button>
           </div>
         </div>
