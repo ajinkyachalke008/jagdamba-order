@@ -9,15 +9,16 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { ArrowLeft, Loader2, MapPin, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Loader2, MapPin, CheckCircle2, Clock, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { generateOrderNumber } from '@/lib/orderUtils';
 import { toast } from 'sonner';
+import { t, getName } from '@/lib/translations';
 import gPayQR from '@/assets/gpay-qr.jpg';
 import phonePeQR from '@/assets/phonepe-qr.jpg';
 
 export default function Checkout() {
-  const { cart, getTotal, clearCart, language } = useCart();
+  const { cart, getTotal, clearCart, language, loyaltyPoints, addLoyaltyPoints } = useCart();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
@@ -41,7 +42,7 @@ export default function Checkout() {
 
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
-      toast.error(language === 'en' ? 'Geolocation is not supported by your browser' : 'तुमचा ब्राउझर स्थान शेअरिंग सपोर्ट करत नाही');
+      toast.error(t('geoNotSupported', language));
       return;
     }
 
@@ -53,11 +54,11 @@ export default function Checkout() {
         const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
         setLocationLink(mapsLink);
         setIsCapturingLocation(false);
-        toast.success(language === 'en' ? 'Location captured successfully!' : 'स्थान यशस्वीरित्या कॅप्चर केले!');
+        toast.success(t('locationSuccess', language));
       },
-      (error) => {
+      () => {
         setIsCapturingLocation(false);
-        toast.error(language === 'en' ? 'Failed to capture location. Please enable location permissions.' : 'स्थान कॅप्चर करता आले नाही. कृपया स्थान परवानगी सक्षम करा.');
+        toast.error(t('locationFailed', language));
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -67,21 +68,15 @@ export default function Checkout() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.customerName.trim() || formData.customerName.length < 2) {
-      newErrors.customerName = language === 'en' 
-        ? 'Name must be at least 2 characters' 
-        : 'नाव किमान २ अक्षरांचे असावे';
+      newErrors.customerName = t('nameError', language);
     }
 
     if (!/^\d{10}$/.test(formData.customerPhone)) {
-      newErrors.customerPhone = language === 'en'
-        ? 'Please enter a valid 10-digit phone number'
-        : 'कृपया वैध १० अंकी फोन नंबर टाका';
+      newErrors.customerPhone = t('phoneError', language);
     }
 
     if (formData.deliveryMethod === 'home_delivery' && !formData.deliveryAddress.trim()) {
-      newErrors.deliveryAddress = language === 'en'
-        ? 'Address is required for home delivery'
-        : 'होम डिलिव्हरीसाठी पत्ता आवश्यक आहे';
+      newErrors.deliveryAddress = t('addressError', language);
     }
 
     setErrors(newErrors);
@@ -92,7 +87,7 @@ export default function Checkout() {
     e.preventDefault();
     
     if (!validateForm()) {
-      toast.error(language === 'en' ? 'Please fix the errors' : 'कृपया त्रुटी दुरुस्त करा');
+      toast.error(t('fixErrors', language));
       return;
     }
 
@@ -102,7 +97,6 @@ export default function Checkout() {
       const orderNumber = generateOrderNumber();
       const total = getTotal();
 
-      // Insert order
       const { data: order, error: orderError } = await (supabase as any)
         .from('orders' as any)
         .insert({
@@ -124,7 +118,6 @@ export default function Checkout() {
       if (orderError) throw orderError;
       if (!order) throw new Error('Failed to create order');
 
-      // Insert order items
       const orderItems = cart.map(item => ({
         order_id: order.id,
         item_name_en: item.nameEn,
@@ -144,7 +137,7 @@ export default function Checkout() {
       try {
         await supabase.functions.invoke('send-telegram-notification', {
           body: {
-            orderNumber: orderNumber,
+            orderNumber,
             customerName: formData.customerName.trim(),
             customerPhone: formData.customerPhone,
             deliveryMethod: formData.deliveryMethod,
@@ -160,30 +153,29 @@ export default function Checkout() {
             })),
             subtotal: total,
             gst: 0,
-            total: total
+            total
           }
         });
-        console.log('Telegram notification sent');
       } catch (notifError) {
-        // Don't fail the order if notification fails
         console.error('Failed to send Telegram notification:', notifError);
       }
 
-      // Clear cart and navigate to success
+      // Add loyalty points
+      addLoyaltyPoints(total);
+
       clearCart();
-      toast.success(language === 'en' ? 'Order placed successfully!' : 'ऑर्डर यशस्वीरित्या दिली!');
+      toast.success(t('orderPlaced', language));
       navigate(`/order-success/${order!.id}`);
     } catch (error) {
       console.error('Order submission error:', error);
-      toast.error(language === 'en' 
-        ? 'Failed to place order. Please try again.' 
-        : 'ऑर्डर देता आली नाही. कृपया पुन्हा प्रयत्न करा.');
+      toast.error(t('orderFailed', language));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const total = getTotal();
+  const pointsToEarn = Math.floor(total / 10);
 
   return (
     <div className="min-h-screen bg-background">
@@ -196,34 +188,33 @@ export default function Checkout() {
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {language === 'en' ? 'Back to Menu' : 'मेनूवर परत जा'}
+          {t('backToMenu', language)}
         </Button>
 
         <h1 className="text-4xl font-bold mb-8 text-primary">
-          {language === 'en' ? 'Checkout' : 'चेकआउट'}
+          {t('checkout', language)}
         </h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Form Section */}
           <div className="lg:col-span-2">
             <Card className="bg-card border-border p-6">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Customer Information */}
                 <div>
                   <h2 className="text-2xl font-bold mb-4 text-foreground">
-                    {language === 'en' ? 'Customer Information' : 'ग्राहक माहिती'}
+                    {t('customerInfo', language)}
                   </h2>
                   
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="name">
-                        {language === 'en' ? 'Full Name' : 'पूर्ण नाव'} *
+                        {t('fullName', language)} *
                       </Label>
                       <Input
                         id="name"
                         value={formData.customerName}
                         onChange={(e) => setFormData({...formData, customerName: e.target.value})}
-                        placeholder={language === 'en' ? 'Enter your full name' : 'तुमचे पूर्ण नाव टाका'}
+                        placeholder={t('enterName', language)}
                         className={errors.customerName ? 'border-destructive' : ''}
                       />
                       {errors.customerName && (
@@ -233,14 +224,14 @@ export default function Checkout() {
 
                     <div>
                       <Label htmlFor="phone">
-                        {language === 'en' ? 'Mobile Number' : 'मोबाईल नंबर'} *
+                        {t('mobileNumber', language)} *
                       </Label>
                       <Input
                         id="phone"
                         type="tel"
                         value={formData.customerPhone}
                         onChange={(e) => setFormData({...formData, customerPhone: e.target.value.replace(/\D/g, '').slice(0, 10)})}
-                        placeholder={language === 'en' ? '10-digit mobile number' : '१० अंकी मोबाईल नंबर'}
+                        placeholder={t('mobilePlaceholder', language)}
                         className={errors.customerPhone ? 'border-destructive' : ''}
                       />
                       {errors.customerPhone && (
@@ -255,7 +246,7 @@ export default function Checkout() {
                 {/* Delivery Options */}
                 <div>
                   <h2 className="text-2xl font-bold mb-4 text-foreground">
-                    {language === 'en' ? 'Delivery Method' : 'डिलिव्हरी पद्धत'}
+                    {t('deliveryMethod', language)}
                   </h2>
                   
                   <RadioGroup
@@ -265,13 +256,13 @@ export default function Checkout() {
                     <div className="flex items-center space-x-2 p-4 border border-border rounded-lg hover:border-primary cursor-pointer">
                       <RadioGroupItem value="pickup" id="pickup" />
                       <Label htmlFor="pickup" className="flex-1 cursor-pointer">
-                        {language === 'en' ? 'Pickup' : 'पिकअप'}
+                        {t('pickup', language)}
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2 p-4 border border-border rounded-lg hover:border-primary cursor-pointer">
                       <RadioGroupItem value="home_delivery" id="home_delivery" />
                       <Label htmlFor="home_delivery" className="flex-1 cursor-pointer">
-                        {language === 'en' ? 'Home Delivery' : 'होम डिलिव्हरी'}
+                        {t('homeDelivery', language)}
                       </Label>
                     </div>
                   </RadioGroup>
@@ -280,13 +271,13 @@ export default function Checkout() {
                     <div className="mt-4 space-y-3">
                       <div>
                         <Label htmlFor="address">
-                          {language === 'en' ? 'Delivery Address' : 'डिलिव्हरी पत्ता'} *
+                          {t('deliveryAddress', language)} *
                         </Label>
                         <Input
                           id="address"
                           value={formData.deliveryAddress}
                           onChange={(e) => setFormData({...formData, deliveryAddress: e.target.value})}
-                          placeholder={language === 'en' ? 'Enter your complete address' : 'तुमचा संपूर्ण पत्ता टाका'}
+                          placeholder={t('enterAddress', language)}
                           className={errors.deliveryAddress ? 'border-destructive' : ''}
                         />
                         {errors.deliveryAddress && (
@@ -305,17 +296,17 @@ export default function Checkout() {
                           {isCapturingLocation ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              {language === 'en' ? 'Capturing Location...' : 'स्थान कॅप्चर करत आहे...'}
+                              {t('capturingLocation', language)}
                             </>
                           ) : locationLink ? (
                             <>
                               <CheckCircle2 className="mr-2 h-4 w-4 text-primary" />
-                              {language === 'en' ? 'Location Captured' : 'स्थान कॅप्चर केले'}
+                              {t('locationCaptured', language)}
                             </>
                           ) : (
                             <>
                               <MapPin className="mr-2 h-4 w-4" />
-                              {language === 'en' ? 'Share Your Location' : 'तुमचे स्थान शेअर करा'}
+                              {t('shareLocation', language)}
                             </>
                           )}
                         </Button>
@@ -328,7 +319,7 @@ export default function Checkout() {
                               rel="noopener noreferrer"
                               className="text-sm text-primary hover:underline truncate flex-1"
                             >
-                              {language === 'en' ? 'View on Maps' : 'मॅपवर पहा'}
+                              {t('viewOnMaps', language)}
                             </a>
                             <Button
                               type="button"
@@ -337,13 +328,13 @@ export default function Checkout() {
                               onClick={() => setLocationLink('')}
                               className="ml-2 h-6 text-xs"
                             >
-                              {language === 'en' ? 'Clear' : 'साफ करा'}
+                              {t('clear', language)}
                             </Button>
                           </div>
                         )}
                         
                         <p className="text-xs text-muted-foreground mt-1">
-                          {language === 'en' ? 'Optional: Share your precise location for faster delivery' : 'पर्यायी: जलद डिलिव्हरीसाठी तुमचे अचूक स्थान शेअर करा'}
+                          {t('locationOptional', language)}
                         </p>
                       </div>
                     </div>
@@ -355,7 +346,7 @@ export default function Checkout() {
                 {/* Payment Options */}
                 <div>
                   <h2 className="text-2xl font-bold mb-4 text-foreground">
-                    {language === 'en' ? 'Payment Method' : 'पेमेंट पद्धत'}
+                    {t('paymentMethod', language)}
                   </h2>
                   
                   <RadioGroup
@@ -365,25 +356,24 @@ export default function Checkout() {
                     <div className="flex items-center space-x-2 p-4 border border-border rounded-lg hover:border-primary cursor-pointer">
                       <RadioGroupItem value="cash" id="cash" />
                       <Label htmlFor="cash" className="flex-1 cursor-pointer">
-                        {language === 'en' ? 'Cash on Delivery/Pickup' : 'रोख पेमेंट'}
+                        {t('cashOnDelivery', language)}
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2 p-4 border border-border rounded-lg hover:border-primary cursor-pointer">
                       <RadioGroupItem value="online" id="online" />
                       <Label htmlFor="online" className="flex-1 cursor-pointer">
-                        {language === 'en' ? 'Online Payment (UPI/Card/Wallet)' : 'ऑनलाईन पेमेंट (UPI/Card/Wallet)'}
+                        {t('onlinePayment', language)}
                       </Label>
                     </div>
                   </RadioGroup>
 
                   {formData.paymentMethod === 'online' && (
-                    <Card className="mt-4 p-6 border-primary shadow-[0_0_25px_hsl(var(--primary)/0.2)] animate-fade-in">
+                    <Card className="mt-4 p-6 border-primary shadow-[0_0_25px_hsl(var(--primary)/0.2)]">
                       <h3 className="text-xl font-bold text-primary mb-4 text-center">
-                        💳 {language === 'en' ? 'Complete Your Payment' : 'तुमचे पेमेंट पूर्ण करा'}
+                        💳 {t('completePayment', language)}
                       </h3>
                       
                       <div className="grid md:grid-cols-2 gap-4 mb-4">
-                        {/* PhonePe QR Card */}
                         <Card className="p-4 bg-card border-border hover:border-primary transition-all hover:scale-105">
                           <div className="text-center">
                             <p className="font-bold text-lg mb-2 text-primary">PhonePe</p>
@@ -396,7 +386,6 @@ export default function Checkout() {
                           </div>
                         </Card>
                         
-                        {/* Google Pay QR Card */}
                         <Card className="p-4 bg-card border-border hover:border-primary transition-all hover:scale-105">
                           <div className="text-center">
                             <p className="font-bold text-lg mb-2 text-primary">Google Pay</p>
@@ -412,12 +401,7 @@ export default function Checkout() {
                       
                       <div className="text-center space-y-2">
                         <p className="text-lg font-bold text-primary">
-                          {language === 'en' ? `Scan & Pay: ₹${total}` : `स्कॅन करा आणि पेमेंट करा: ₹${total}`}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {language === 'en' 
-                            ? 'After completing payment, click "Confirm Order" below' 
-                            : 'पेमेंट पूर्ण केल्यानंतर, खालील "ऑर्डर कन्फर्म करा" वर क्लिक करा'}
+                          Scan & Pay: ₹{total}
                         </p>
                       </div>
                     </Card>
@@ -433,10 +417,10 @@ export default function Checkout() {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      {language === 'en' ? 'Placing Order...' : 'ऑर्डर देत आहे...'}
+                      {t('placingOrder', language)}
                     </>
                   ) : (
-                    language === 'en' ? 'Confirm Order' : 'ऑर्डर कन्फर्म करा'
+                    t('placeOrder', language)
                   )}
                 </Button>
               </form>
@@ -447,14 +431,14 @@ export default function Checkout() {
           <div>
             <Card className="bg-card border-primary shadow-[0_0_30px_hsl(var(--primary)/0.2)] p-6 sticky top-24">
               <h2 className="text-2xl font-bold mb-4 text-primary">
-                {language === 'en' ? 'Order Summary' : 'ऑर्डर सारांश'}
+                {t('orderSummary', language)}
               </h2>
 
               <div className="space-y-3 mb-4">
                 {cart.map(item => (
                   <div key={item.id} className="flex justify-between text-sm">
                     <span className="text-foreground">
-                      {language === 'en' ? item.nameEn : item.nameMr} x {item.quantity}
+                      {getName(item, language)} x {item.quantity}
                     </span>
                     <span className="text-muted-foreground">₹{item.price * item.quantity}</span>
                   </div>
@@ -463,9 +447,33 @@ export default function Checkout() {
 
               <Separator className="my-4" />
 
+              {/* Delivery Time Estimation */}
+              <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-primary/10">
+                <Clock className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{t('estimatedTime', language)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formData.deliveryMethod === 'pickup' 
+                      ? t('prepTime', language)
+                      : t('deliveryTime', language)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Loyalty Points */}
+              <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-primary/10">
+                <Star className="h-5 w-5 text-primary fill-primary" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{t('loyaltyPoints', language)}: {loyaltyPoints}</p>
+                  <p className="text-xs text-muted-foreground">
+                    +{pointsToEarn} {t('pointsEarned', language)}
+                  </p>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <div className="flex justify-between text-xl font-bold text-primary">
-                  <span>{language === 'en' ? 'Total' : 'एकूण'}</span>
+                  <span>{t('total', language)}</span>
                   <span>₹{total}</span>
                 </div>
               </div>
