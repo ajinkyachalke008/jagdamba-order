@@ -14,7 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      order_items: {
+        Row: {
+          id: string
+          item_name_en: string
+          item_name_mr: string
+          order_id: string
+          price: number
+          quantity: number
+          subtotal: number
+        }
+        Insert: {
+          id?: string
+          item_name_en: string
+          item_name_mr: string
+          order_id: string
+          price: number
+          quantity: number
+          subtotal: number
+        }
+        Update: {
+          id?: string
+          item_name_en?: string
+          item_name_mr?: string
+          order_id?: string
+          price?: number
+          quantity?: number
+          subtotal?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string | null
+          customer_name: string
+          customer_phone: string
+          delivery_address: string | null
+          delivery_method: string
+          gst: number
+          id: string
+          order_number: string
+          order_status: string | null
+          payment_method: string
+          payment_status: string | null
+          subtotal: number
+          total: number
+        }
+        Insert: {
+          created_at?: string | null
+          customer_name: string
+          customer_phone: string
+          delivery_address?: string | null
+          delivery_method: string
+          gst: number
+          id?: string
+          order_number: string
+          order_status?: string | null
+          payment_method: string
+          payment_status?: string | null
+          subtotal: number
+          total: number
+        }
+        Update: {
+          created_at?: string | null
+          customer_name?: string
+          customer_phone?: string
+          delivery_address?: string | null
+          delivery_method?: string
+          gst?: number
+          id?: string
+          order_number?: string
+          order_status?: string | null
+          payment_method?: string
+          payment_status?: string | null
+          subtotal?: number
+          total?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
