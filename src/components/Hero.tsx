@@ -2,6 +2,7 @@ import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, ShoppingBag } from 'lucide-react';
 import logo from '@/assets/jagdamba-logo.jpg';
+import { t } from '@/lib/translations';
 
 export const Hero = () => {
   const { language } = useCart();
@@ -12,10 +13,8 @@ export const Hero = () => {
 
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-      {/* Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/10" />
       
-      {/* Animated Particles */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-10 w-2 h-2 bg-primary rounded-full animate-float" />
         <div className="absolute top-40 right-20 w-3 h-3 bg-primary/60 rounded-full animate-float" style={{ animationDelay: '1s' }} />
@@ -23,7 +22,6 @@ export const Hero = () => {
         <div className="absolute bottom-40 right-1/3 w-4 h-4 bg-primary/40 rounded-full animate-float" style={{ animationDelay: '1.5s' }} />
       </div>
 
-      {/* Content */}
       <div className="relative z-10 container mx-auto px-4 text-center">
         <div className="mb-8 flex justify-center animate-scale-in">
           <img 
@@ -34,15 +32,11 @@ export const Hero = () => {
         </div>
 
         <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-slide-up text-foreground">
-          {language === 'en' 
-            ? 'Pure Vegetarian Parcel Service' 
-            : 'शुद्ध शाकाहारी पार्सल सेवा'}
+          {t('heroTitle', language)}
         </h1>
 
         <p className="text-xl md:text-3xl mb-8 text-primary animate-slide-up" style={{ animationDelay: '0.1s' }}>
-          {language === 'en' 
-            ? 'Taste of Tradition, Delivered Fresh' 
-            : 'परंपरेचा स्वाद, ताज्या पोहोचविला'}
+          {t('heroSubtitle', language)}
         </p>
 
         <p className="text-muted-foreground mb-12 text-lg animate-slide-up" style={{ animationDelay: '0.2s' }}>
@@ -53,10 +47,10 @@ export const Hero = () => {
           <Button 
             size="lg"
             onClick={scrollToMenu}
-            className="bg-primary hover:bg-primary/90 text-white shadow-[0_0_25px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_35px_hsl(var(--primary)/0.8)] transition-all"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_25px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_35px_hsl(var(--primary)/0.8)] transition-all"
           >
             <ShoppingBag className="mr-2 h-5 w-5" />
-            {language === 'en' ? 'Order Now' : 'ऑर्डर करा'}
+            {t('orderNow', language)}
           </Button>
           <Button 
             size="lg"
@@ -66,13 +60,12 @@ export const Hero = () => {
           >
             <a href="https://wa.me/918380809079" target="_blank" rel="noopener noreferrer">
               <MessageCircle className="mr-2 h-5 w-5" />
-              {language === 'en' ? 'WhatsApp Order' : 'व्हाट्सअॅप ऑर्डर'}
+              {t('whatsappOrder', language)}
             </a>
           </Button>
         </div>
       </div>
 
-      {/* Bottom Wave */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
     </section>
   );

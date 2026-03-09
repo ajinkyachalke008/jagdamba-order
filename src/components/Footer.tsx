@@ -1,15 +1,15 @@
 import { useCart } from '@/contexts/CartContext';
-import { MapPin, Phone, Mail } from 'lucide-react';
+import { MapPin, Phone } from 'lucide-react';
 import logo from '@/assets/jagdamba-logo.jpg';
+import { t } from '@/lib/translations';
 
 export const Footer = () => {
   const { language } = useCart();
 
   return (
-    <footer className="bg-secondary border-t border-border py-12">
+    <footer id="contact" className="bg-secondary border-t border-border py-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Logo and Tagline */}
           <div className="text-center md:text-left">
             <img 
               src={logo} 
@@ -17,16 +17,13 @@ export const Footer = () => {
               className="h-20 w-auto mx-auto md:mx-0 mb-4"
             />
             <p className="text-muted-foreground">
-              {language === 'en' 
-                ? 'Pure Vegetarian Parcel Service' 
-                : 'शुद्ध शाकाहारी पार्सल सेवा'}
+              {t('pureVegService', language)}
             </p>
           </div>
 
-          {/* Contact Info */}
           <div>
             <h3 className="text-lg font-bold mb-4 text-primary">
-              {language === 'en' ? 'Contact Us' : 'आमच्याशी संपर्क साधा'}
+              {t('contactUs', language)}
             </h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
@@ -38,7 +35,7 @@ export const Footer = () => {
               <div className="flex items-start gap-3">
                 <Phone className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
                 <div className="flex-1">
-                  <div className="border-2 border-red-500 bg-red-500/10 rounded-md p-3 space-y-2">
+                  <div className="border-2 border-accent bg-accent/10 rounded-md p-3 space-y-2">
                     <div className="text-muted-foreground">
                       <a href="tel:8380809079" className="font-semibold hover:text-primary transition-colors">
                         8380809079
@@ -59,27 +56,22 @@ export const Footer = () => {
             </div>
           </div>
 
-          {/* Hours */}
           <div>
             <h3 className="text-lg font-bold mb-4 text-primary">
-              {language === 'en' ? 'Hours' : 'वेळ'}
+              {t('hours', language)}
             </h3>
             <p className="text-muted-foreground">
-              {language === 'en' 
-                ? 'Open Daily' 
-                : 'दररोज उघडे'}
+              {t('openDaily', language)}
             </p>
             <p className="text-muted-foreground">
-              {language === 'en' 
-                ? 'Call for delivery hours' 
-                : 'डिलिव्हरी वेळेसाठी कॉल करा'}
+              {t('callForHours', language)}
             </p>
           </div>
         </div>
 
         <div className="mt-8 pt-8 border-t border-border text-center">
           <p className="text-muted-foreground mb-4">
-            © 2025 Hotel Jagdamba. {language === 'en' ? 'All rights reserved.' : 'सर्व हक्क राखीव.'}
+            © 2025 Hotel Jagdamba. {t('allRightsReserved', language)}
           </p>
           <div className="mt-4">
             <p className="neon-text animate-neon-glow text-sm md:text-base tracking-wider transition-all duration-300">

@@ -3,6 +3,7 @@ import { Plus, Check } from 'lucide-react';
 import { useCart, MenuItem } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { t, getName, getSecondaryName, getDescription } from '@/lib/translations';
 
 interface MenuCardProps {
   item: MenuItem;
@@ -15,11 +16,10 @@ export const MenuCard = ({ item }: MenuCardProps) => {
   const handleAddToCart = () => {
     setIsAdding(true);
     addToCart(item);
-    
-    setTimeout(() => {
-      setIsAdding(false);
-    }, 600);
+    setTimeout(() => setIsAdding(false), 600);
   };
+
+  const description = getDescription(item, language);
 
   return (
     <Card className={`
@@ -32,14 +32,14 @@ export const MenuCard = ({ item }: MenuCardProps) => {
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1">
             <h3 className="text-xl font-bold text-foreground mb-1">
-              {language === 'en' ? item.nameEn : item.nameMr}
+              {getName(item, language)}
             </h3>
             <p className="text-xs text-muted-foreground mb-2">
-              {language === 'en' ? item.nameMr : item.nameEn}
+              {getSecondaryName(item, language)}
             </p>
-            {item.descriptionEn && item.descriptionMr && (
+            {description && (
               <p className="text-sm text-muted-foreground/80 mb-3">
-                {language === 'en' ? item.descriptionEn : item.descriptionMr}
+                {description}
               </p>
             )}
           </div>
@@ -56,18 +56,17 @@ export const MenuCard = ({ item }: MenuCardProps) => {
           {isAdding ? (
             <>
               <Check className="mr-2 h-5 w-5" />
-              {language === 'en' ? 'Added!' : 'जोडले!'}
+              {t('added', language)}
             </>
           ) : (
             <>
               <Plus className="mr-2 h-5 w-5" />
-              {language === 'en' ? 'Order Now' : 'ऑर्डर करा'}
+              {t('orderNow', language)}
             </>
           )}
         </Button>
       </div>
 
-      {/* Glow effect on hover */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent" />
       </div>
