@@ -29,7 +29,7 @@ export const MobileCartModal = ({ isOpen, onClose }: MobileCartModalProps) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="h-[90vh] bg-card border-primary">
+      <SheetContent side="right" className="w-full sm:max-w-md bg-card border-primary overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="text-2xl font-bold text-primary flex items-center gap-2">
             <ShoppingCart className="h-6 w-6" />
@@ -37,7 +37,7 @@ export const MobileCartModal = ({ isOpen, onClose }: MobileCartModalProps) => {
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex flex-col h-[calc(100%-5rem)] mt-6">
+        <div className="flex flex-col mt-6">
           <div className="flex-1 overflow-y-auto space-y-4 mb-4">
             {cart.map(item => (
               <div key={item.id} className="bg-secondary rounded-lg p-4">
