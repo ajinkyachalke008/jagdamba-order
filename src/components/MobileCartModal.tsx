@@ -37,7 +37,7 @@ export const MobileCartModal = ({ isOpen, onClose }: MobileCartModalProps) => {
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex flex-col h-[calc(100%-5rem)] mt-6">
+        <div className="flex flex-col mt-6">
           <div className="flex-1 overflow-y-auto space-y-4 mb-4">
             {cart.map(item => (
               <div key={item.id} className="bg-secondary rounded-lg p-4">
