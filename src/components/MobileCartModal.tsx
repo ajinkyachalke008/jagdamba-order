@@ -29,7 +29,7 @@ export const MobileCartModal = ({ isOpen, onClose }: MobileCartModalProps) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="h-[90vh] bg-card border-primary">
+      <SheetContent side="right" className="w-full sm:max-w-md bg-card border-primary overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="text-2xl font-bold text-primary flex items-center gap-2">
             <ShoppingCart className="h-6 w-6" />
