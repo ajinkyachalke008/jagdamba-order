@@ -3,8 +3,6 @@ import { Hero } from '@/components/Hero';
 import { Menu } from '@/components/Menu';
 import { ComboSection } from '@/components/ComboSection';
 import { PhotoGallery } from '@/components/PhotoGallery';
-import { BillingSidebar } from '@/components/BillingSidebar';
-import { MobileCartButton } from '@/components/MobileCartButton';
 import { Footer } from '@/components/Footer';
 
 const Index = () => {
@@ -15,8 +13,6 @@ const Index = () => {
       <Menu />
       <ComboSection />
       <PhotoGallery />
-      <BillingSidebar />
-      <MobileCartButton />
       <Footer />
     </div>
   );
