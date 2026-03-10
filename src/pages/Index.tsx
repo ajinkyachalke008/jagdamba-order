@@ -4,6 +4,7 @@ import { Menu } from '@/components/Menu';
 import { ComboSection } from '@/components/ComboSection';
 import { PhotoGallery } from '@/components/PhotoGallery';
 import { Footer } from '@/components/Footer';
+import { FloatingCart } from '@/components/FloatingCart';
 
 const Index = () => {
   return (
@@ -14,6 +15,7 @@ const Index = () => {
       <ComboSection />
       <PhotoGallery />
       <Footer />
+      <FloatingCart />
     </div>
   );
 };
