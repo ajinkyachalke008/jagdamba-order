@@ -1,11 +1,14 @@
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, ShoppingBag } from 'lucide-react';
+import { MessageCircle, ShoppingBag, Download } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import logo from '@/assets/jagdamba-logo.jpg';
 import { t } from '@/lib/translations';
 
 export const Hero = () => {
   const { language } = useCart();
+  const navigate = useNavigate();
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
 
   const scrollToMenu = () => {
     document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth' });
@@ -63,6 +66,17 @@ export const Hero = () => {
               {t('whatsappOrder', language)}
             </a>
           </Button>
+          {!isStandalone && (
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-primary text-primary hover:bg-primary/10"
+              onClick={() => navigate('/install')}
+            >
+              <Download className="mr-2 h-5 w-5" />
+              {language === 'mr' ? 'अॅप इन्स्टॉल करा' : language === 'hi' ? 'ऐप इंस्टॉल करें' : 'Install App'}
+            </Button>
+          )}
         </div>
       </div>
 
