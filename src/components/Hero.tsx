@@ -7,6 +7,8 @@ import { t } from '@/lib/translations';
 
 export const Hero = () => {
   const { language } = useCart();
+  const navigate = useNavigate();
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
 
   const scrollToMenu = () => {
     document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth' });
