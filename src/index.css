@@ -127,3 +127,27 @@
       0 0 180px hsl(24 100% 50%);
   }
 }
+
+/* Receipt animations */
+@keyframes receiptSlideUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes receiptItemFade {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Print styles for receipt */
+@media print {
+  body * { visibility: hidden !important; }
+  .receipt-card, .receipt-card * { visibility: visible !important; }
+  .receipt-card {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}
