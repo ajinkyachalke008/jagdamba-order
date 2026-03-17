@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import Index from "./pages/Index";
 import Checkout from "./pages/Checkout";
+import ReceiptPage from "./pages/Receipt";
 import OrderSuccess from "./pages/OrderSuccess";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
