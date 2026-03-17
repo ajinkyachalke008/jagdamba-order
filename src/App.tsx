@@ -23,6 +23,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/receipt" element={<ReceiptPage />} />
             <Route path="/order-success/:orderId" element={<OrderSuccess />} />
             <Route path="/install" element={<Install />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
