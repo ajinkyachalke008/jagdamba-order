@@ -160,12 +160,38 @@ export default function Checkout() {
         console.error('Failed to send Telegram notification:', notifError);
       }
 
+      // Build receipt data for the receipt page
+      const receiptItems = cart.map(item => ({
+        id: item.id,
+        name: getName(item, language),
+        quantity: item.quantity,
+        unitPrice: item.price,
+        totalPrice: item.price * item.quantity,
+      }));
+      const taxRate = 0.05;
+      const taxAmount = Math.round(total * taxRate * 100) / 100;
+      const grandTotal = total + taxAmount;
+      const receiptOrder = {
+        orderId: `#${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`,
+        customerName: formData.customerName.trim(),
+        customerPhone: formData.customerPhone,
+        deliveryAddress: formData.deliveryMethod === 'home_delivery' ? formData.deliveryAddress.trim() : undefined,
+        orderType: formData.deliveryMethod === 'pickup' ? 'Parcel' : 'Delivery',
+        items: receiptItems,
+        subtotal: total,
+        taxRate,
+        taxAmount,
+        grandTotal,
+        orderTimestamp: new Date().toISOString(),
+        status: 'Confirmed',
+      };
+
       // Add loyalty points
       addLoyaltyPoints(total);
 
       clearCart();
       toast.success(t('orderPlaced', language));
-      navigate(`/order-success/${order!.id}`);
+      navigate('/receipt', { state: { order: receiptOrder } });
     } catch (error) {
       console.error('Order submission error:', error);
       toast.error(t('orderFailed', language));
