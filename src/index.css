@@ -141,6 +141,9 @@
 /* Print styles for receipt */
 @media print {
   body * { visibility: hidden !important; }
+  canvas { display: none !important; }
+  .print-receipt-fallback, .print-receipt-fallback * { visibility: visible !important; display: block !important; }
+  .print-receipt-fallback .receipt-card { visibility: visible !important; }
   .receipt-card, .receipt-card * { visibility: visible !important; }
   .receipt-card {
     position: absolute !important;
