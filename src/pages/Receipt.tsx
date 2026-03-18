@@ -190,11 +190,12 @@ Thank you for ordering! 🙏
 /* ---------- Celebration Overlay ---------- */
 function CelebrationOverlay({ onDone }: { onDone: () => void }) {
   const [fadeOut, setFadeOut] = useState(false);
-  const dots = useRef(generateConfettiDots(20)).current;
+  const dots = useRef(generateConfettiDots(30)).current;
+  const sparkles = useRef(generateSparkles(16)).current;
 
   useEffect(() => {
-    const t1 = setTimeout(() => setFadeOut(true), 1800);
-    const t2 = setTimeout(onDone, 2200);
+    const t1 = setTimeout(() => setFadeOut(true), 2400);
+    const t2 = setTimeout(onDone, 2800);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [onDone]);
 
@@ -202,58 +203,134 @@ function CelebrationOverlay({ onDone }: { onDone: () => void }) {
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 50,
-        background: 'radial-gradient(circle at center, #1a1a1a 0%, #000000 100%)',
+        background: 'radial-gradient(ellipse at 50% 40%, #1f1a2e 0%, #0d0a14 60%, #000000 100%)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         opacity: fadeOut ? 0 : 1,
         transition: 'opacity 400ms ease-out',
+        overflow: 'hidden',
       }}
     >
-      {/* Confetti dots */}
-      {dots.map((dot, i) => (
+      {/* Expanding ring bursts */}
+      {[0, 200, 500].map((delay, i) => (
         <div
-          key={i}
+          key={`ring-${i}`}
           style={{
             position: 'absolute',
-            width: dot.size, height: dot.size,
-            borderRadius: '50%',
-            background: dot.color,
             left: '50%', top: '50%',
-            animation: `confettiBurst 1200ms ease-out ${dot.delay}ms forwards`,
-            '--tx': `${dot.tx}px`,
-            '--ty': `${dot.ty}px`,
+            width: 0, height: 0,
+            borderRadius: '50%',
+            border: `2px solid ${['#FFD700', '#FF6B6B', '#4ECDC4'][i]}`,
+            opacity: 0,
+            transform: 'translate(-50%, -50%)',
+            animation: `celebrationRing 1200ms ease-out ${delay}ms forwards`,
+          } as React.CSSProperties}
+        />
+      ))}
+
+      {/* Sparkle particles */}
+      {sparkles.map((s, i) => (
+        <div
+          key={`sparkle-${i}`}
+          style={{
+            position: 'absolute',
+            left: '50%', top: '50%',
+            width: s.size, height: s.size,
+            background: '#fff',
+            borderRadius: '50%',
+            boxShadow: '0 0 6px 2px rgba(255,255,255,0.8)',
+            animation: `sparkleFloat ${s.duration}ms ease-out ${s.delay}ms forwards`,
+            '--tx': `${s.tx}px`,
+            '--ty': `${s.ty}px`,
             opacity: 0,
           } as React.CSSProperties}
         />
       ))}
 
-      {/* Emoji */}
-      <div style={{
-        fontSize: 72,
-        animation: 'popIn 400ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
-        transform: 'scale(0)',
-      }}>🎉</div>
+      {/* Confetti pieces — varied shapes */}
+      {dots.map((dot, i) => (
+        <div
+          key={`confetti-${i}`}
+          style={{
+            position: 'absolute',
+            width: dot.size,
+            height: dot.shape === 'rect' ? dot.size * 1.8 : dot.size,
+            borderRadius: dot.shape === 'circle' ? '50%' : dot.shape === 'star' ? '2px' : '1px',
+            background: dot.color,
+            left: '50%', top: '50%',
+            animation: `confettiBurst 1400ms ease-out ${dot.delay}ms forwards`,
+            '--tx': `${dot.tx}px`,
+            '--ty': `${dot.ty}px`,
+            opacity: 0,
+            boxShadow: `0 0 8px ${dot.color}80`,
+          } as React.CSSProperties}
+        />
+      ))}
 
-      {/* Heading */}
+      {/* Glowing backdrop pulse */}
+      <div style={{
+        position: 'absolute',
+        width: 200, height: 200,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,215,0,0.15) 0%, transparent 70%)',
+        animation: 'glowPulse 1600ms ease-in-out infinite',
+      }} />
+
+      {/* Stacked emojis with stagger */}
+      <div style={{ position: 'relative', display: 'flex', gap: 8, marginBottom: 8 }}>
+        {['✨', '🎉', '✨'].map((emoji, i) => (
+          <div key={`emoji-${i}`} style={{
+            fontSize: i === 1 ? 80 : 40,
+            animation: `popIn 500ms cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 120}ms forwards`,
+            transform: 'scale(0)',
+            filter: i === 1 ? 'drop-shadow(0 0 20px rgba(255,215,0,0.6))' : 'none',
+          }}>{emoji}</div>
+        ))}
+      </div>
+
+      {/* Heading with glow */}
       <h1 style={{
-        color: '#fff', fontWeight: 'bold', fontSize: 28, marginTop: 16,
-        animation: 'slideUpFade 500ms ease-out 200ms forwards',
+        color: '#fff', fontWeight: 'bold', fontSize: 30, marginTop: 12,
+        animation: 'slideUpFade 600ms ease-out 300ms forwards',
         opacity: 0, transform: 'translateY(20px)',
+        textShadow: '0 0 30px rgba(255,215,0,0.4), 0 0 60px rgba(255,215,0,0.2)',
+        letterSpacing: '0.02em',
       }}>Order Confirmed!</h1>
 
       {/* Subtext */}
       <p style={{
-        color: '#aaa', fontSize: 16, marginTop: 8,
-        animation: 'slideUpFade 500ms ease-out 400ms forwards',
+        color: '#bbb', fontSize: 16, marginTop: 8,
+        animation: 'slideUpFade 600ms ease-out 500ms forwards',
         opacity: 0,
       }}>Your parcel is being prepared 🍱</p>
 
-      {/* Progress bar */}
+      {/* Order ID badge */}
       <div style={{
-        position: 'absolute', bottom: 0, left: 0,
-        height: 3, background: '#FFD700',
-        animation: 'fillBar 2000ms linear forwards',
-        width: 0,
-      }} />
+        marginTop: 20,
+        padding: '6px 20px',
+        borderRadius: 20,
+        border: '1px solid rgba(255,215,0,0.3)',
+        background: 'rgba(255,215,0,0.08)',
+        color: '#FFD700',
+        fontSize: 14,
+        fontFamily: 'monospace',
+        animation: 'slideUpFade 600ms ease-out 700ms forwards',
+        opacity: 0,
+        letterSpacing: '0.05em',
+      }}>🧾 Receipt generating...</div>
+
+      {/* Progress bar — gradient */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: 4,
+        background: 'rgba(255,255,255,0.05)',
+      }}>
+        <div style={{
+          height: '100%',
+          background: 'linear-gradient(90deg, #FFD700, #FF6B6B, #4ECDC4, #FFD700)',
+          backgroundSize: '200% 100%',
+          animation: 'fillBar 2600ms linear forwards, shimmer 1s linear infinite',
+          width: 0,
+        }} />
+      </div>
     </div>
   );
 }
