@@ -128,18 +128,34 @@ function lookAt(eye: number[], center: number[], up: number[]) {
 const VS = `attribute vec3 a_pos;attribute vec3 a_norm;attribute vec2 a_uv;uniform mat4 u_proj;uniform mat4 u_view;varying vec3 v_norm;varying vec2 v_uv;void main(){v_norm=a_norm;v_uv=a_uv;gl_Position=u_proj*u_view*vec4(a_pos,1.0);}`;
 const FS = `precision mediump float;varying vec3 v_norm;varying vec2 v_uv;uniform sampler2D u_tex;void main(){vec3 norm=normalize(v_norm);if(!gl_FrontFacing)norm=-norm;vec3 l1=normalize(vec3(0.4,0.8,0.6));vec3 l2=normalize(vec3(-0.5,-0.2,0.8));float d1=max(dot(norm,l1),0.0);float d2=max(dot(norm,l2),0.0);float ambient=0.55;vec4 tc=texture2D(u_tex,v_uv);vec3 fc=tc.rgb*(ambient+d1*0.4+d2*0.2);gl_FragColor=vec4(fc,tc.a);}`;
 
-/* ---------- Confetti dots generation ---------- */
-const CONFETTI_COLORS = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8'];
+/* ---------- Confetti & particle generation ---------- */
+const CONFETTI_COLORS = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#E879F9', '#34D399'];
 function generateConfettiDots(count: number) {
   return Array.from({ length: count }, (_, i) => {
-    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.8;
-    const dist = 80 + Math.random() * 80;
+    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+    const dist = 60 + Math.random() * 140;
+    const shapes = ['circle', 'rect', 'star'] as const;
     return {
       tx: Math.cos(angle) * dist,
       ty: Math.sin(angle) * dist,
-      size: 6 + Math.random() * 4,
+      size: 5 + Math.random() * 7,
       color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-      delay: Math.random() * 200,
+      delay: Math.random() * 300,
+      rotation: Math.random() * 720 - 360,
+      shape: shapes[i % shapes.length],
+    };
+  });
+}
+function generateSparkles(count: number) {
+  return Array.from({ length: count }, (_, i) => {
+    const angle = (Math.PI * 2 * i) / count;
+    const dist = 30 + Math.random() * 200;
+    return {
+      tx: Math.cos(angle) * dist,
+      ty: Math.sin(angle) * dist,
+      delay: 100 + Math.random() * 600,
+      duration: 600 + Math.random() * 400,
+      size: 2 + Math.random() * 3,
     };
   });
 }
