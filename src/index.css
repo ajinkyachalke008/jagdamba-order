@@ -138,6 +138,25 @@
   to { opacity: 1; transform: translateX(0); }
 }
 
+/* Celebration animations */
+@keyframes popIn {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes confettiBurst {
+  from { opacity: 1; transform: translate(0, 0) rotate(0deg); }
+  to { opacity: 0; transform: translate(var(--tx), var(--ty)) rotate(360deg); }
+}
+@keyframes fillBar {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
 /* Print styles for receipt */
 @media print {
   body * { visibility: hidden !important; }
