@@ -23,11 +23,9 @@ function drawReceiptTexture(canvas: HTMLCanvasElement, order: OrderReceipt) {
   ctx.scale(2, 2);
   const W = 512, H = 1024;
 
-  // Paper background
-  ctx.fillStyle = '#f8f8f4';
+  ctx.fillStyle = '#f0ede6';
   ctx.fillRect(0, 0, W, H);
 
-  // Header band
   const BAND_H = 120;
   ctx.fillStyle = '#1a1a1a';
   ctx.fillRect(0, 0, W, BAND_H);
@@ -37,17 +35,13 @@ function drawReceiptTexture(canvas: HTMLCanvasElement, order: OrderReceipt) {
   ctx.textBaseline = 'middle';
   ctx.fillText('JAGDAMBA PARCEL', W / 2, BAND_H / 2);
 
-  // Address & phone
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = '#1a1a1a';
   ctx.font = '19px monospace';
   ctx.fillText('Masur\u2013Shamgaon Road, Masur', W / 2, BAND_H + 40);
   ctx.fillText('Tel: 8380809079 / 9860403842', W / 2, BAND_H + 72);
-
-  // Divider
   ctx.fillText('- - - - - - - - - - - - - - - - - -', W / 2, BAND_H + 130);
 
-  // Order meta
   ctx.textAlign = 'left';
   ctx.font = '20px monospace';
   const metaY = BAND_H + 185;
@@ -60,7 +54,6 @@ function drawReceiptTexture(canvas: HTMLCanvasElement, order: OrderReceipt) {
   ctx.textAlign = 'center';
   ctx.fillText('- - - - - - - - - - - - - - - - - -', W / 2, metaY + 180);
 
-  // Line items
   const startY = metaY + 240;
   const lineH = 46;
   order.items.forEach((item, i) => {
@@ -72,12 +65,10 @@ function drawReceiptTexture(canvas: HTMLCanvasElement, order: OrderReceipt) {
     ctx.fillText('\u20b9' + item.totalPrice.toFixed(2), W - 40, startY + lineH * i);
   });
 
-  // Divider after items
   const divY = startY + lineH * order.items.length + 20;
   ctx.textAlign = 'center';
   ctx.fillText('- - - - - - - - - - - - - - - - - -', W / 2, divY);
 
-  // Subtotal & Tax
   ctx.textAlign = 'left';
   ctx.font = '20px monospace';
   ctx.fillStyle = '#1a1a1a';
@@ -87,17 +78,14 @@ function drawReceiptTexture(canvas: HTMLCanvasElement, order: OrderReceipt) {
   ctx.fillText('\u20b9' + order.subtotal.toFixed(2), W - 40, divY + 55);
   ctx.fillText('\u20b9' + order.taxAmount.toFixed(2), W - 40, divY + 98);
 
-  // Thick rule
   ctx.fillRect(40, divY + 130, W - 80, 4);
 
-  // TOTAL
   ctx.font = 'bold 28px monospace';
   ctx.textAlign = 'left';
   ctx.fillText('TOTAL', 40, divY + 190);
   ctx.textAlign = 'right';
   ctx.fillText('\u20b9' + order.grandTotal.toFixed(2), W - 40, divY + 190);
 
-  // Footer
   ctx.font = '20px monospace';
   ctx.textAlign = 'center';
   ctx.fillStyle = '#1a1a1a';
@@ -140,6 +128,120 @@ function lookAt(eye: number[], center: number[], up: number[]) {
 const VS = `attribute vec3 a_pos;attribute vec3 a_norm;attribute vec2 a_uv;uniform mat4 u_proj;uniform mat4 u_view;varying vec3 v_norm;varying vec2 v_uv;void main(){v_norm=a_norm;v_uv=a_uv;gl_Position=u_proj*u_view*vec4(a_pos,1.0);}`;
 const FS = `precision mediump float;varying vec3 v_norm;varying vec2 v_uv;uniform sampler2D u_tex;void main(){vec3 norm=normalize(v_norm);if(!gl_FrontFacing)norm=-norm;vec3 l1=normalize(vec3(0.4,0.8,0.6));vec3 l2=normalize(vec3(-0.5,-0.2,0.8));float d1=max(dot(norm,l1),0.0);float d2=max(dot(norm,l2),0.0);float ambient=0.55;vec4 tc=texture2D(u_tex,v_uv);vec3 fc=tc.rgb*(ambient+d1*0.4+d2*0.2);gl_FragColor=vec4(fc,tc.a);}`;
 
+/* ---------- Confetti dots generation ---------- */
+const CONFETTI_COLORS = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8'];
+function generateConfettiDots(count: number) {
+  return Array.from({ length: count }, (_, i) => {
+    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.8;
+    const dist = 80 + Math.random() * 80;
+    return {
+      tx: Math.cos(angle) * dist,
+      ty: Math.sin(angle) * dist,
+      size: 6 + Math.random() * 4,
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      delay: Math.random() * 200,
+    };
+  });
+}
+
+/* ---------- WhatsApp message builder ---------- */
+function buildWhatsAppMessage(order: OrderReceipt): string {
+  const items = order.items.map(i => `• ${i.name} × ${i.quantity} — ₹${i.totalPrice.toFixed(2)}`).join('\n');
+  const fd = formatDate(order.orderTimestamp);
+  const msg = `🧾 *JAGDAMBA PARCEL*
+Masur–Shamgaon Road, Masur
+
+✅ *Order Confirmed!*
+
+📋 *Order ID:* ${order.orderId}
+👤 *Name:* ${order.customerName}
+📦 *Type:* ${order.orderType}
+📅 *Date:* ${fd}
+
+🍽️ *Items Ordered:*
+${items}
+
+💰 Subtotal: ₹${order.subtotal.toFixed(2)}
+🧾 Tax (5%): ₹${order.taxAmount.toFixed(2)}
+━━━━━━━━━━━
+💵 *TOTAL: ₹${order.grandTotal.toFixed(2)}*
+
+Thank you for ordering! 🙏
+📞 8380809079 / 9860403842`;
+  return encodeURIComponent(msg);
+}
+
+/* ---------- Celebration Overlay ---------- */
+function CelebrationOverlay({ onDone }: { onDone: () => void }) {
+  const [fadeOut, setFadeOut] = useState(false);
+  const dots = useRef(generateConfettiDots(20)).current;
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setFadeOut(true), 1800);
+    const t2 = setTimeout(onDone, 2200);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [onDone]);
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 50,
+        background: 'radial-gradient(circle at center, #1a1a1a 0%, #000000 100%)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        opacity: fadeOut ? 0 : 1,
+        transition: 'opacity 400ms ease-out',
+      }}
+    >
+      {/* Confetti dots */}
+      {dots.map((dot, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'absolute',
+            width: dot.size, height: dot.size,
+            borderRadius: '50%',
+            background: dot.color,
+            left: '50%', top: '50%',
+            animation: `confettiBurst 1200ms ease-out ${dot.delay}ms forwards`,
+            '--tx': `${dot.tx}px`,
+            '--ty': `${dot.ty}px`,
+            opacity: 0,
+          } as React.CSSProperties}
+        />
+      ))}
+
+      {/* Emoji */}
+      <div style={{
+        fontSize: 72,
+        animation: 'popIn 400ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+        transform: 'scale(0)',
+      }}>🎉</div>
+
+      {/* Heading */}
+      <h1 style={{
+        color: '#fff', fontWeight: 'bold', fontSize: 28, marginTop: 16,
+        animation: 'slideUpFade 500ms ease-out 200ms forwards',
+        opacity: 0, transform: 'translateY(20px)',
+      }}>Order Confirmed!</h1>
+
+      {/* Subtext */}
+      <p style={{
+        color: '#aaa', fontSize: 16, marginTop: 8,
+        animation: 'slideUpFade 500ms ease-out 400ms forwards',
+        opacity: 0,
+      }}>Your parcel is being prepared 🍱</p>
+
+      {/* Progress bar */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0,
+        height: 3, background: '#FFD700',
+        animation: 'fillBar 2000ms linear forwards',
+        width: 0,
+      }} />
+    </div>
+  );
+}
+
 export default function ReceiptPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -147,23 +249,23 @@ export default function ReceiptPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const indicatorRef = useRef<HTMLDivElement>(null);
   const [webglFailed, setWebglFailed] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(true);
 
   useEffect(() => {
     if (order) localStorage.setItem('jagdamba_last_order', order.orderId);
   }, [order]);
 
+  // WebGL setup — only when celebration is done
   useEffect(() => {
-    if (!order || !canvasRef.current) return;
+    if (!order || !canvasRef.current || showCelebration) return;
 
     const glCanvas = canvasRef.current;
     const gl = glCanvas.getContext('webgl', { antialias: true, alpha: false });
     if (!gl) { setWebglFailed(true); return; }
 
-    // Draw texture
     const texCanvas = document.createElement('canvas');
     drawReceiptTexture(texCanvas, order);
 
-    // Resize
     const resize = () => {
       glCanvas.width = window.innerWidth * devicePixelRatio;
       glCanvas.height = window.innerHeight * devicePixelRatio;
@@ -174,7 +276,6 @@ export default function ReceiptPage() {
     resize();
     window.addEventListener('resize', resize);
 
-    // Shaders
     function compileShader(src: string, type: number) {
       const s = gl!.createShader(type)!;
       gl!.shaderSource(s, src);
@@ -193,7 +294,6 @@ export default function ReceiptPage() {
     const uProj = gl.getUniformLocation(prog, 'u_proj');
     const uView = gl.getUniformLocation(prog, 'u_view');
 
-    // Texture
     const tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texCanvas);
@@ -202,7 +302,6 @@ export default function ReceiptPage() {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-    // Cloth setup
     const numX = 25, numY = 50;
     const clothW = 3.0, clothH = 6.0;
     const total = numX * numY;
@@ -225,7 +324,6 @@ export default function ReceiptPage() {
       }
     }
 
-    // Constraints
     type Constraint = [number, number, number];
     const constraints: Constraint[] = [];
     function addC(a: number, b: number) {
@@ -243,7 +341,6 @@ export default function ReceiptPage() {
       }
     }
 
-    // Indices
     const idxArr: number[] = [];
     for (let y = 0; y < numY - 1; y++) {
       for (let x = 0; x < numX - 1; x++) {
@@ -253,7 +350,6 @@ export default function ReceiptPage() {
     }
     const indices = new Uint16Array(idxArr);
 
-    // Buffers
     const posBuf = gl.createBuffer()!;
     const normBuf = gl.createBuffer()!;
     const uvBuf = gl.createBuffer()!;
@@ -261,13 +357,11 @@ export default function ReceiptPage() {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, uvBuf);
     gl.bufferData(gl.ARRAY_BUFFER, uvs, gl.STATIC_DRAW);
-
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuf);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
 
     const normals = new Float32Array(total * 3);
 
-    // Interaction state
     let grabbed = -1;
     let grabDepth = 0;
     const camPos = [0, -3.0, 9.0];
@@ -312,12 +406,8 @@ export default function ReceiptPage() {
     const onPointerMove = (e: PointerEvent) => {
       if (grabbed < 0) return;
       const [wx, wy, wz] = unproject(e.clientX, e.clientY, grabDepth);
-      pos[grabbed * 3] = wx;
-      pos[grabbed * 3 + 1] = wy;
-      pos[grabbed * 3 + 2] = wz;
-      prev[grabbed * 3] = wx;
-      prev[grabbed * 3 + 1] = wy;
-      prev[grabbed * 3 + 2] = wz;
+      pos[grabbed * 3] = wx; pos[grabbed * 3 + 1] = wy; pos[grabbed * 3 + 2] = wz;
+      prev[grabbed * 3] = wx; prev[grabbed * 3 + 1] = wy; prev[grabbed * 3 + 2] = wz;
       if (indicatorRef.current) {
         indicatorRef.current.style.left = e.clientX + 'px';
         indicatorRef.current.style.top = e.clientY + 'px';
@@ -334,7 +424,7 @@ export default function ReceiptPage() {
     window.addEventListener('pointercancel', onPointerUp);
 
     gl.enable(gl.DEPTH_TEST);
-    gl.clearColor(0.898, 0.898, 0.898, 1.0);
+    gl.clearColor(0.04, 0.04, 0.04, 1.0);
 
     let time = 0;
     let rafId = 0;
@@ -343,7 +433,6 @@ export default function ReceiptPage() {
       rafId = requestAnimationFrame(render);
       time += 0.016;
 
-      // Physics
       const gravity = -0.007;
       const windX = Math.sin(time * 1.5) * 0.0015;
       const windZ = Math.cos(time * 1.1) * 0.0015;
@@ -361,7 +450,6 @@ export default function ReceiptPage() {
         pos[iz] += vz + windZ * vertFactor;
       }
 
-      // Constraints
       for (let iter = 0; iter < 15; iter++) {
         for (let c = 0; c < constraints.length; c++) {
           const [a, b, rest] = constraints[c];
@@ -385,20 +473,18 @@ export default function ReceiptPage() {
         }
       }
 
-      // Normals
       normals.fill(0);
       for (let i = 0; i < indices.length; i += 3) {
         const ia = indices[i], ib = indices[i + 1], ic = indices[i + 2];
-        const ax = pos[ia * 3], ay = pos[ia * 3 + 1], az = pos[ia * 3 + 2];
-        const e1x = pos[ib * 3] - ax, e1y = pos[ib * 3 + 1] - ay, e1z = pos[ib * 3 + 2] - az;
-        const e2x = pos[ic * 3] - ax, e2y = pos[ic * 3 + 1] - ay, e2z = pos[ic * 3 + 2] - az;
+        const iax = pos[ia * 3], iay = pos[ia * 3 + 1], iaz = pos[ia * 3 + 2];
+        const e1x = pos[ib * 3] - iax, e1y = pos[ib * 3 + 1] - iay, e1z = pos[ib * 3 + 2] - iaz;
+        const e2x = pos[ic * 3] - iax, e2y = pos[ic * 3 + 1] - iay, e2z = pos[ic * 3 + 2] - iaz;
         const nx = e1y * e2z - e1z * e2y, ny = e1z * e2x - e1x * e2z, nz = e1x * e2y - e1y * e2x;
-        for (const idx of [ia, ib, ic]) {
-          normals[idx * 3] += nx; normals[idx * 3 + 1] += ny; normals[idx * 3 + 2] += nz;
+        for (const vi of [ia, ib, ic]) {
+          normals[vi * 3] += nx; normals[vi * 3 + 1] += ny; normals[vi * 3 + 2] += nz;
         }
       }
 
-      // Upload & draw
       gl!.clear(gl!.COLOR_BUFFER_BIT | gl!.DEPTH_BUFFER_BIT);
 
       const aspect = glCanvas.width / glCanvas.height;
@@ -435,46 +521,81 @@ export default function ReceiptPage() {
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
     };
-  }, [order]);
+  }, [order, showCelebration]);
+
+  const handleWhatsApp = () => {
+    if (!order) return;
+    window.open(`https://wa.me/?text=${buildWhatsAppMessage(order)}`, '_blank');
+  };
+
+  const handlePrintPDF = () => {
+    if (!order) return;
+    const oldTitle = document.title;
+    document.title = `Receipt_${order.orderId}_${order.customerName}`;
+    window.print();
+    document.title = oldTitle;
+  };
 
   if (!order) {
     return (
-      <div style={{ background: '#e5e5e5', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', fontFamily: "monospace, 'Courier New', Courier" }}>
-        <p style={{ fontSize: '16px', color: '#1a1a1a', marginBottom: '16px' }}>No order found. Please place an order first.</p>
-        <button onClick={() => navigate('/')} style={{ background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '8px', padding: '12px 24px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>🏠 Back to Menu</button>
+      <div style={{ background: '#0a0a0a', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', fontFamily: "monospace, 'Courier New', Courier" }}>
+        <p style={{ fontSize: '16px', color: '#999', marginBottom: '16px' }}>No order found. Please place an order first.</p>
+        <button onClick={() => navigate('/')} style={{ background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '12px 24px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>🏠 Back to Menu</button>
       </div>
     );
   }
 
   if (webglFailed) {
     return (
-      <div style={{ background: '#e5e5e5', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
+      <div style={{ background: '#0a0a0a', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
         <ReceiptComponent order={order} />
-        <div style={{ marginTop: '24px', display: 'flex', gap: '16px' }}>
-          <button onClick={() => window.print()} style={{ background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '8px', padding: '12px 24px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>🖨️ Print / Save Receipt</button>
-          <button onClick={() => navigate('/')} style={{ background: 'transparent', color: '#1a1a1a', border: '2px solid #1a1a1a', borderRadius: '8px', padding: '12px 24px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>🏠 Back to Menu</button>
+        <div style={{ marginTop: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button onClick={handleWhatsApp} style={{ background: '#25D366', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>📲 Share on WhatsApp</button>
+          <button onClick={handlePrintPDF} style={{ background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>⬇️ Download PDF</button>
+          <a href="tel:8380809079" style={{ background: '#FF6B35', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>📞 Call Us</a>
+          <button onClick={() => window.print()} style={{ background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>🖨️ Print / Save</button>
+          <button onClick={() => navigate('/')} style={{ background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>🏠 Back to Menu</button>
         </div>
       </div>
     );
   }
 
+  const btnBase: React.CSSProperties = {
+    borderRadius: 8, padding: '10px 16px', fontSize: 13, fontWeight: 500,
+    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    gap: 6, fontFamily: 'sans-serif', border: 'none', flex: '1 1 0',
+    minWidth: 0, whiteSpace: 'nowrap',
+  };
+
   return (
-    <div style={{ margin: 0, padding: 0, background: '#e5e5e5', overflow: 'hidden', touchAction: 'none', width: '100vw', height: '100vh', position: 'relative' }}>
-      <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1, cursor: 'grab' }} />
+    <div style={{ margin: 0, padding: 0, background: '#0a0a0a', overflow: 'hidden', touchAction: 'none', width: '100vw', height: '100vh', position: 'relative' }}>
+      {showCelebration && <CelebrationOverlay onDone={() => setShowCelebration(false)} />}
 
-      {/* Grab indicator */}
-      <div ref={indicatorRef} style={{ position: 'absolute', width: 32, height: 32, background: 'rgba(0,0,0,0.1)', border: '2px solid rgba(0,0,0,0.25)', borderRadius: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', display: 'none', zIndex: 10 }} />
+      {!showCelebration && (
+        <>
+          <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1, cursor: 'grab' }} />
 
-      {/* Hint */}
-      <div style={{ position: 'absolute', bottom: 100, width: '100%', textAlign: 'center', zIndex: 2, pointerEvents: 'none', userSelect: 'none' }}>
-        <p style={{ margin: 0, color: '#888', fontSize: 17, fontWeight: 500, letterSpacing: 0.5 }}>Grab and drag the receipt</p>
-      </div>
+          <div ref={indicatorRef} style={{ position: 'absolute', width: 32, height: 32, background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.25)', borderRadius: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', display: 'none', zIndex: 10 }} />
 
-      {/* Action buttons */}
-      <div style={{ position: 'absolute', bottom: 40, width: '100%', display: 'flex', justifyContent: 'center', gap: 12, zIndex: 3, padding: '0 16px', boxSizing: 'border-box' }}>
-        <button onClick={() => window.print()} style={{ background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>🖨️ Print / Save</button>
-        <button onClick={() => navigate('/')} style={{ background: 'rgba(255,255,255,0.8)', color: '#1a1a1a', border: '2px solid #1a1a1a', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>🏠 Back to Menu</button>
-      </div>
+          {/* Hint */}
+          <div style={{ position: 'absolute', bottom: 130, width: '100%', textAlign: 'center', zIndex: 2, pointerEvents: 'none', userSelect: 'none' }}>
+            <p style={{ margin: 0, color: '#666', fontSize: 17, fontWeight: 500, letterSpacing: 0.5 }}>Grab and drag the receipt</p>
+          </div>
+
+          {/* Action buttons */}
+          <div style={{ position: 'absolute', bottom: 20, left: 0, right: 0, zIndex: 3, padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 8, maxWidth: 480, width: '100%' }}>
+              <button onClick={handleWhatsApp} style={{ ...btnBase, background: '#25D366', color: '#fff' }}>📲 WhatsApp</button>
+              <button onClick={handlePrintPDF} style={{ ...btnBase, background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>⬇️ PDF</button>
+              <a href="tel:8380809079" style={{ ...btnBase, background: '#FF6B35', color: '#fff', textDecoration: 'none' }}>📞 Call Us</a>
+            </div>
+            <div style={{ display: 'flex', gap: 8, maxWidth: 480, width: '100%' }}>
+              <button onClick={() => window.print()} style={{ ...btnBase, background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.4)' }}>🖨️ Print / Save</button>
+              <button onClick={() => navigate('/')} style={{ ...btnBase, background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.4)' }}>🏠 Back to Menu</button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Hidden print fallback */}
       <div className="print-receipt-fallback" style={{ display: 'none' }}>
