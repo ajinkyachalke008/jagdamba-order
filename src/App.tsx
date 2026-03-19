@@ -9,6 +9,8 @@ import Checkout from "./pages/Checkout";
 import ReceiptPage from "./pages/Receipt";
 import OrderSuccess from "./pages/OrderSuccess";
 import Install from "./pages/Install";
+import AdminDashboard from "./pages/AdminDashboard";
+import TrackOrder from "./pages/TrackOrder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => (
             <Route path="/receipt" element={<ReceiptPage />} />
             <Route path="/order-success/:orderId" element={<OrderSuccess />} />
             <Route path="/install" element={<Install />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/track-order" element={<TrackOrder />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

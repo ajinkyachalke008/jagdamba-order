@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { CheckCircle, Download, Home, Phone, Loader2, Clock, Star } from 'lucide-react';
+import { CheckCircle, Download, Home, Phone, Loader2, Clock, Star, Search } from 'lucide-react';
 import { generateReceiptPDF } from '@/lib/orderUtils';
 import confetti from 'canvas-confetti';
 import { useCart } from '@/contexts/CartContext';
@@ -217,7 +217,7 @@ export default function OrderSuccess() {
           </Card>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Button
               onClick={handleDownloadPDF}
               variant="outline"
@@ -228,6 +228,16 @@ export default function OrderSuccess() {
               {t('downloadReceipt', language)}
             </Button>
             
+            <Button
+              onClick={() => navigate(`/track-order?order=${orderData.order_number}`)}
+              variant="outline"
+              size="lg"
+              className="w-full border-primary hover:bg-primary/10"
+            >
+              <Search className="mr-2 h-5 w-5" />
+              Track Order
+            </Button>
+
             <Button
               onClick={() => navigate('/')}
               size="lg"
