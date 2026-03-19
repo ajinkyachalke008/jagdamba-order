@@ -168,8 +168,6 @@ Masur–Shamgaon Road, Masur
 🍽️ *Items Ordered:*
 ${items}
 
-💰 Subtotal: ₹${order.subtotal.toFixed(2)}
-🧾 Tax (5%): ₹${order.taxAmount.toFixed(2)}
 ━━━━━━━━━━━
 💵 *TOTAL: ₹${order.grandTotal.toFixed(2)}*
 
