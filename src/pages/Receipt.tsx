@@ -184,6 +184,33 @@ function CelebrationOverlay({ onDone }: { onDone: () => void }) {
   const sparkles = useRef(generateSparkles(16)).current;
 
   useEffect(() => {
+    // Play celebration sound using Web Audio API
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const playTone = (freq: number, start: number, dur: number, vol: number) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime + start);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + start + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + start);
+        osc.stop(audioCtx.currentTime + start + dur);
+      };
+      // Celebratory chime: ascending arpeggio
+      playTone(523.25, 0, 0.3, 0.15);     // C5
+      playTone(659.25, 0.12, 0.3, 0.15);  // E5
+      playTone(783.99, 0.24, 0.3, 0.15);  // G5
+      playTone(1046.5, 0.36, 0.5, 0.2);   // C6
+      // Shimmer
+      playTone(1318.5, 0.5, 0.6, 0.08);   // E6
+      playTone(1568.0, 0.6, 0.5, 0.06);   // G6
+    } catch (e) {
+      // Audio not available — silent fallback
+    }
+
     const t1 = setTimeout(() => setFadeOut(true), 2400);
     const t2 = setTimeout(onDone, 2800);
     return () => { clearTimeout(t1); clearTimeout(t2); };
