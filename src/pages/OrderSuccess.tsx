@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { CheckCircle, Download, Home, Phone, Loader2, Clock, Star } from 'lucide-react';
+import { CheckCircle, Download, Home, Phone, Loader2, Clock, Star, Search } from 'lucide-react';
 import { generateReceiptPDF } from '@/lib/orderUtils';
 import confetti from 'canvas-confetti';
 import { useCart } from '@/contexts/CartContext';
