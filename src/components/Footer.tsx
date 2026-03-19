@@ -1,5 +1,6 @@
 import { useCart } from '@/contexts/CartContext';
-import { MapPin, Phone } from 'lucide-react';
+import { MapPin, Phone, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import logo from '@/assets/jagdamba-logo.jpg';
 import { t } from '@/lib/translations';
 
