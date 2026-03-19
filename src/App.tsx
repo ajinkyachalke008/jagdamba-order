@@ -9,6 +9,8 @@ import Checkout from "./pages/Checkout";
 import ReceiptPage from "./pages/Receipt";
 import OrderSuccess from "./pages/OrderSuccess";
 import Install from "./pages/Install";
+import AdminDashboard from "./pages/AdminDashboard";
+import TrackOrder from "./pages/TrackOrder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
