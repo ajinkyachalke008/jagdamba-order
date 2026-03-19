@@ -1,7 +1,8 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import type { OrderReceipt } from '@/components/Receipt';
 import ReceiptComponent from '@/components/Receipt';
+import jsPDF from 'jspdf';
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
