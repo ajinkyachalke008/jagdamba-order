@@ -69,22 +69,13 @@ function drawReceiptTexture(canvas: HTMLCanvasElement, order: OrderReceipt) {
   ctx.textAlign = 'center';
   ctx.fillText('- - - - - - - - - - - - - - - - - -', W / 2, divY);
 
-  ctx.textAlign = 'left';
-  ctx.font = '20px monospace';
-  ctx.fillStyle = '#1a1a1a';
-  ctx.fillText('Subtotal', 40, divY + 55);
-  ctx.fillText('Tax (5%)', 40, divY + 98);
-  ctx.textAlign = 'right';
-  ctx.fillText('\u20b9' + order.subtotal.toFixed(2), W - 40, divY + 55);
-  ctx.fillText('\u20b9' + order.taxAmount.toFixed(2), W - 40, divY + 98);
-
-  ctx.fillRect(40, divY + 130, W - 80, 4);
+  ctx.fillRect(40, divY + 40, W - 80, 4);
 
   ctx.font = 'bold 28px monospace';
   ctx.textAlign = 'left';
-  ctx.fillText('TOTAL', 40, divY + 190);
+  ctx.fillText('TOTAL', 40, divY + 90);
   ctx.textAlign = 'right';
-  ctx.fillText('\u20b9' + order.grandTotal.toFixed(2), W - 40, divY + 190);
+  ctx.fillText('\u20b9' + order.grandTotal.toFixed(2), W - 40, divY + 90);
 
   ctx.font = '20px monospace';
   ctx.textAlign = 'center';
