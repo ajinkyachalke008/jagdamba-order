@@ -638,13 +638,72 @@ export default function ReceiptPage() {
     window.open(`https://wa.me/?text=${buildWhatsAppMessage(order)}`, '_blank');
   };
 
-  const handlePrintPDF = () => {
+  const handleDownloadPDF = useCallback(() => {
     if (!order) return;
-    const oldTitle = document.title;
-    document.title = `Receipt_${order.orderId}_${order.customerName}`;
-    window.print();
-    document.title = oldTitle;
-  };
+    const doc = new jsPDF();
+    const pw = doc.internal.pageSize.getWidth();
+
+    // Header
+    doc.setFillColor(26, 26, 26);
+    doc.rect(0, 0, pw, 30, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('JAGDAMBA PARCEL', pw / 2, 18, { align: 'center' });
+
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Masur\u2013Shamgaon Road, Masur', pw / 2, 40, { align: 'center' });
+    doc.text('Tel: 8380809079 / 9860403842', pw / 2, 46, { align: 'center' });
+
+    doc.setDrawColor(26, 26, 26);
+    doc.line(20, 52, pw - 20, 52);
+
+    // Order meta
+    doc.setFontSize(11);
+    const fd = formatDate(order.orderTimestamp);
+    doc.text(`Date: ${fd}`, 20, 62);
+    doc.text(`Order: ${order.orderId}`, 20, 69);
+    doc.text(`Name: ${order.customerName}`, 20, 76);
+    doc.text(`Type: ${order.orderType}`, 20, 83);
+
+    doc.line(20, 88, pw - 20, 88);
+
+    // Items
+    doc.setFont('helvetica', 'bold');
+    doc.text('Item', 20, 96);
+    doc.text('Qty', 120, 96);
+    doc.text('Amount', pw - 20, 96, { align: 'right' });
+    doc.line(20, 99, pw - 20, 99);
+
+    doc.setFont('helvetica', 'normal');
+    let y = 107;
+    order.items.forEach(item => {
+      doc.text(item.name, 20, y);
+      doc.text(String(item.quantity), 125, y);
+      doc.text(`Rs.${item.totalPrice.toFixed(2)}`, pw - 20, y, { align: 'right' });
+      y += 7;
+    });
+
+    // Total
+    y += 4;
+    doc.setLineWidth(0.8);
+    doc.line(20, y, pw - 20, y);
+    y += 10;
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TOTAL', 20, y);
+    doc.text(`Rs.${order.grandTotal.toFixed(2)}`, pw - 20, y, { align: 'right' });
+
+    // Footer
+    y += 20;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'italic');
+    doc.text('Thank you! Visit again.', pw / 2, y, { align: 'center' });
+
+    doc.save(`Receipt_${order.orderId}_${order.customerName}.pdf`);
+  }, [order]);
 
   if (!order) {
     return (
