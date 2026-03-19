@@ -755,7 +755,7 @@ export default function ReceiptPage() {
           <div style={{ position: 'absolute', bottom: 20, left: 0, right: 0, zIndex: 3, padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: 8, maxWidth: 480, width: '100%' }}>
               <button onClick={handleWhatsApp} style={{ ...btnBase, background: '#25D366', color: '#fff' }}>📲 WhatsApp</button>
-              <button onClick={handlePrintPDF} style={{ ...btnBase, background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>⬇️ PDF</button>
+              <button onClick={handleDownloadPDF} style={{ ...btnBase, background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>⬇️ PDF</button>
               <a href="tel:8380809079" style={{ ...btnBase, background: '#FF6B35', color: '#fff', textDecoration: 'none' }}>📞 Call Us</a>
             </div>
             <div style={{ display: 'flex', gap: 8, maxWidth: 480, width: '100%' }}>
