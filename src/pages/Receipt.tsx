@@ -1,7 +1,8 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import type { OrderReceipt } from '@/components/Receipt';
 import ReceiptComponent from '@/components/Receipt';
+import jsPDF from 'jspdf';
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -69,30 +70,21 @@ function drawReceiptTexture(canvas: HTMLCanvasElement, order: OrderReceipt) {
   ctx.textAlign = 'center';
   ctx.fillText('- - - - - - - - - - - - - - - - - -', W / 2, divY);
 
-  ctx.textAlign = 'left';
-  ctx.font = '20px monospace';
-  ctx.fillStyle = '#1a1a1a';
-  ctx.fillText('Subtotal', 40, divY + 55);
-  ctx.fillText('Tax (5%)', 40, divY + 98);
-  ctx.textAlign = 'right';
-  ctx.fillText('\u20b9' + order.subtotal.toFixed(2), W - 40, divY + 55);
-  ctx.fillText('\u20b9' + order.taxAmount.toFixed(2), W - 40, divY + 98);
-
-  ctx.fillRect(40, divY + 130, W - 80, 4);
+  ctx.fillRect(40, divY + 40, W - 80, 4);
 
   ctx.font = 'bold 28px monospace';
   ctx.textAlign = 'left';
-  ctx.fillText('TOTAL', 40, divY + 190);
+  ctx.fillText('TOTAL', 40, divY + 90);
   ctx.textAlign = 'right';
-  ctx.fillText('\u20b9' + order.grandTotal.toFixed(2), W - 40, divY + 190);
+  ctx.fillText('\u20b9' + order.grandTotal.toFixed(2), W - 40, divY + 90);
 
   ctx.font = '20px monospace';
   ctx.textAlign = 'center';
   ctx.fillStyle = '#1a1a1a';
-  ctx.fillText('Thank you! Visit again.', W / 2, divY + 265);
+  ctx.fillText('Thank you! Visit again.', W / 2, divY + 165);
   ctx.font = '16px monospace';
   ctx.fillStyle = '#666';
-  ctx.fillText('Masur\u2013Shamgaon Road, Masur', W / 2, divY + 302);
+  ctx.fillText('Masur\u2013Shamgaon Road, Masur', W / 2, divY + 202);
 }
 
 /* ---------- math helpers ---------- */
@@ -177,8 +169,6 @@ Masur–Shamgaon Road, Masur
 🍽️ *Items Ordered:*
 ${items}
 
-💰 Subtotal: ₹${order.subtotal.toFixed(2)}
-🧾 Tax (5%): ₹${order.taxAmount.toFixed(2)}
 ━━━━━━━━━━━
 💵 *TOTAL: ₹${order.grandTotal.toFixed(2)}*
 
@@ -194,6 +184,33 @@ function CelebrationOverlay({ onDone }: { onDone: () => void }) {
   const sparkles = useRef(generateSparkles(16)).current;
 
   useEffect(() => {
+    // Play celebration sound using Web Audio API
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const playTone = (freq: number, start: number, dur: number, vol: number) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime + start);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + start + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + start);
+        osc.stop(audioCtx.currentTime + start + dur);
+      };
+      // Celebratory chime: ascending arpeggio
+      playTone(523.25, 0, 0.3, 0.15);     // C5
+      playTone(659.25, 0.12, 0.3, 0.15);  // E5
+      playTone(783.99, 0.24, 0.3, 0.15);  // G5
+      playTone(1046.5, 0.36, 0.5, 0.2);   // C6
+      // Shimmer
+      playTone(1318.5, 0.5, 0.6, 0.08);   // E6
+      playTone(1568.0, 0.6, 0.5, 0.06);   // G6
+    } catch (e) {
+      // Audio not available — silent fallback
+    }
+
     const t1 = setTimeout(() => setFadeOut(true), 2400);
     const t2 = setTimeout(onDone, 2800);
     return () => { clearTimeout(t1); clearTimeout(t2); };
@@ -621,13 +638,72 @@ export default function ReceiptPage() {
     window.open(`https://wa.me/?text=${buildWhatsAppMessage(order)}`, '_blank');
   };
 
-  const handlePrintPDF = () => {
+  const handleDownloadPDF = useCallback(() => {
     if (!order) return;
-    const oldTitle = document.title;
-    document.title = `Receipt_${order.orderId}_${order.customerName}`;
-    window.print();
-    document.title = oldTitle;
-  };
+    const doc = new jsPDF();
+    const pw = doc.internal.pageSize.getWidth();
+
+    // Header
+    doc.setFillColor(26, 26, 26);
+    doc.rect(0, 0, pw, 30, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('JAGDAMBA PARCEL', pw / 2, 18, { align: 'center' });
+
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Masur\u2013Shamgaon Road, Masur', pw / 2, 40, { align: 'center' });
+    doc.text('Tel: 8380809079 / 9860403842', pw / 2, 46, { align: 'center' });
+
+    doc.setDrawColor(26, 26, 26);
+    doc.line(20, 52, pw - 20, 52);
+
+    // Order meta
+    doc.setFontSize(11);
+    const fd = formatDate(order.orderTimestamp);
+    doc.text(`Date: ${fd}`, 20, 62);
+    doc.text(`Order: ${order.orderId}`, 20, 69);
+    doc.text(`Name: ${order.customerName}`, 20, 76);
+    doc.text(`Type: ${order.orderType}`, 20, 83);
+
+    doc.line(20, 88, pw - 20, 88);
+
+    // Items
+    doc.setFont('helvetica', 'bold');
+    doc.text('Item', 20, 96);
+    doc.text('Qty', 120, 96);
+    doc.text('Amount', pw - 20, 96, { align: 'right' });
+    doc.line(20, 99, pw - 20, 99);
+
+    doc.setFont('helvetica', 'normal');
+    let y = 107;
+    order.items.forEach(item => {
+      doc.text(item.name, 20, y);
+      doc.text(String(item.quantity), 125, y);
+      doc.text(`Rs.${item.totalPrice.toFixed(2)}`, pw - 20, y, { align: 'right' });
+      y += 7;
+    });
+
+    // Total
+    y += 4;
+    doc.setLineWidth(0.8);
+    doc.line(20, y, pw - 20, y);
+    y += 10;
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TOTAL', 20, y);
+    doc.text(`Rs.${order.grandTotal.toFixed(2)}`, pw - 20, y, { align: 'right' });
+
+    // Footer
+    y += 20;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'italic');
+    doc.text('Thank you! Visit again.', pw / 2, y, { align: 'center' });
+
+    doc.save(`Receipt_${order.orderId}_${order.customerName}.pdf`);
+  }, [order]);
 
   if (!order) {
     return (
@@ -644,7 +720,7 @@ export default function ReceiptPage() {
         <ReceiptComponent order={order} />
         <div style={{ marginTop: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button onClick={handleWhatsApp} style={{ background: '#25D366', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>📲 Share on WhatsApp</button>
-          <button onClick={handlePrintPDF} style={{ background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>⬇️ Download PDF</button>
+          <button onClick={handleDownloadPDF} style={{ background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>⬇️ Download PDF</button>
           <a href="tel:8380809079" style={{ background: '#FF6B35', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>📞 Call Us</a>
           <button onClick={() => window.print()} style={{ background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>🖨️ Print / Save</button>
           <button onClick={() => navigate('/')} style={{ background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>🏠 Back to Menu</button>
@@ -679,7 +755,7 @@ export default function ReceiptPage() {
           <div style={{ position: 'absolute', bottom: 20, left: 0, right: 0, zIndex: 3, padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: 8, maxWidth: 480, width: '100%' }}>
               <button onClick={handleWhatsApp} style={{ ...btnBase, background: '#25D366', color: '#fff' }}>📲 WhatsApp</button>
-              <button onClick={handlePrintPDF} style={{ ...btnBase, background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>⬇️ PDF</button>
+              <button onClick={handleDownloadPDF} style={{ ...btnBase, background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>⬇️ PDF</button>
               <a href="tel:8380809079" style={{ ...btnBase, background: '#FF6B35', color: '#fff', textDecoration: 'none' }}>📞 Call Us</a>
             </div>
             <div style={{ display: 'flex', gap: 8, maxWidth: 480, width: '100%' }}>

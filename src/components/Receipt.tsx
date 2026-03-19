@@ -147,14 +147,6 @@ export default function Receipt({ order }: { order: OrderReceipt }) {
 
       {/* 5. Totals */}
       <div style={{ padding: '8px 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', lineHeight: '32px', color: '#1a1a1a' }}>
-          <span>Subtotal</span>
-          <span>₹{order.subtotal.toFixed(2)}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', lineHeight: '32px', color: '#1a1a1a' }}>
-          <span>Tax (5%)</span>
-          <span>₹{order.taxAmount.toFixed(2)}</span>
-        </div>
         <div style={{ height: '3px', background: '#1a1a1a', margin: '10px 0' }} />
         <div
           style={{
