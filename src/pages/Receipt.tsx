@@ -80,10 +80,10 @@ function drawReceiptTexture(canvas: HTMLCanvasElement, order: OrderReceipt) {
   ctx.font = '20px monospace';
   ctx.textAlign = 'center';
   ctx.fillStyle = '#1a1a1a';
-  ctx.fillText('Thank you! Visit again.', W / 2, divY + 265);
+  ctx.fillText('Thank you! Visit again.', W / 2, divY + 165);
   ctx.font = '16px monospace';
   ctx.fillStyle = '#666';
-  ctx.fillText('Masur\u2013Shamgaon Road, Masur', W / 2, divY + 302);
+  ctx.fillText('Masur\u2013Shamgaon Road, Masur', W / 2, divY + 202);
 }
 
 /* ---------- math helpers ---------- */
