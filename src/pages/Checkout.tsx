@@ -168,9 +168,6 @@ export default function Checkout() {
         unitPrice: item.price,
         totalPrice: item.price * item.quantity,
       }));
-      const taxRate = 0.05;
-      const taxAmount = Math.round(total * taxRate * 100) / 100;
-      const grandTotal = total + taxAmount;
       const receiptOrder = {
         orderId: `#${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`,
         customerName: formData.customerName.trim(),
@@ -179,9 +176,9 @@ export default function Checkout() {
         orderType: formData.deliveryMethod === 'pickup' ? 'Parcel' : 'Delivery',
         items: receiptItems,
         subtotal: total,
-        taxRate,
-        taxAmount,
-        grandTotal,
+        taxRate: 0,
+        taxAmount: 0,
+        grandTotal: total,
         orderTimestamp: new Date().toISOString(),
         status: 'Confirmed',
       };
