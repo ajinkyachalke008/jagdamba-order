@@ -7,9 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import {
-  ArrowLeft, Package, IndianRupee, Clock, CheckCircle2, Loader2,
+  ArrowLeft, Package, Clock, CheckCircle2, Loader2,
   RefreshCw, Lock, Search, ChevronDown, ChevronUp, Phone, MapPin,
-  User, CreditCard, Truck, ShoppingBag, CalendarDays, TrendingUp
+  User, CreditCard, ShoppingBag, CalendarDays, TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 
