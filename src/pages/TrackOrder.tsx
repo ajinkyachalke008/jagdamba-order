@@ -74,28 +74,37 @@ export default function TrackOrder() {
     const searchNum = (num || orderNumber).trim().toUpperCase();
     if (!searchNum) return;
 
+    setOrderNumber(searchNum);
     setLoading(true);
     setSearched(true);
 
-    const { data: orderData, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('order_number', searchNum)
-      .maybeSingle();
+    try {
+      const { data: orderData, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('order_number', searchNum)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-    if (error || !orderData) {
-      setOrder(null);
+      if (error || !orderData) {
+        setOrder(null);
+        return;
+      }
+
+      const { data: items, error: itemsError } = await supabase
+        .from('order_items')
+        .select('*')
+        .eq('order_id', orderData.id);
+
+      if (itemsError) {
+        console.error('Failed to load order items:', itemsError);
+      }
+
+      setOrder({ ...orderData, items: items || [] });
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const { data: items } = await supabase
-      .from('order_items')
-      .select('*')
-      .eq('order_id', orderData.id);
-
-    setOrder({ ...orderData, items: items || [] });
-    setLoading(false);
   };
 
   const getStatusIndex = (status: string | null) => {
