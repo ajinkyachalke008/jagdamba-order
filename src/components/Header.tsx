@@ -1,4 +1,4 @@
-import { Phone, ShoppingCart } from 'lucide-react';
+import { Phone, ShoppingCart, Shield } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import logo from '@/assets/jagdamba-logo.jpg';
 import { Button } from '@/components/ui/button';
