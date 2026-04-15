@@ -54,6 +54,15 @@ export const Header = () => {
             <Button
               variant="ghost"
               size="icon"
+              asChild
+            >
+              <Link to="/admin">
+                <Shield className="h-5 w-5 text-primary" />
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               className="relative"
               onClick={() => setCartOpen(true)}
             >
