@@ -41,6 +41,10 @@ export const Header = () => {
             <a href="#contact" className="text-foreground hover:text-primary transition-colors">
               {t('contact', language)}
             </a>
+            <Link to="/admin" className="text-foreground hover:text-primary transition-colors flex items-center gap-1">
+              <Shield className="h-4 w-4" />
+              Admin
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
