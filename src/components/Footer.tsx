@@ -67,13 +67,22 @@ export const Footer = () => {
             <p className="text-muted-foreground mb-4">
               {t('callForHours', language)}
             </p>
-            <Link
-              to="/track-order"
-              className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium transition-colors"
-            >
-              <Search className="h-4 w-4" />
-              Track Your Order
-            </Link>
+            <div className="space-y-2">
+              <Link
+                to="/track-order"
+                className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium transition-colors"
+              >
+                <Search className="h-4 w-4" />
+                Track Your Order
+              </Link>
+              <br />
+              <Link
+                to="/admin"
+                className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary font-medium transition-colors text-sm"
+              >
+                🔐 Admin Dashboard
+              </Link>
+            </div>
           </div>
         </div>
 

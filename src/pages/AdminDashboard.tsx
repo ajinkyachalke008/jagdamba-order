@@ -38,7 +38,7 @@ interface Order {
   created_at: string | null;
 }
 
-const ADMIN_PIN = '1234';
+const ADMIN_PIN = 'ajinkya008';
 
 const STATUS_FLOW = ['pending', 'preparing', 'completed'] as const;
 type OrderStatus = typeof STATUS_FLOW[number];
@@ -168,12 +168,11 @@ export default function AdminDashboard() {
           <CardContent className="space-y-4">
             <Input
               type="password"
-              placeholder="• • • •"
+              placeholder="Enter PIN"
               value={pin}
               onChange={(e) => setPin(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-              className="text-center text-2xl tracking-[0.5em] h-14"
-              maxLength={4}
+              className="text-center text-xl tracking-widest h-14"
             />
             <Button onClick={handleLogin} className="w-full h-12 text-base">
               <Lock className="h-4 w-4 mr-2" /> Unlock Dashboard
