@@ -1,5 +1,6 @@
-import { Phone, ShoppingCart } from 'lucide-react';
+import { Phone, ShoppingCart, Shield } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import { Link } from 'react-router-dom';
 import logo from '@/assets/jagdamba-logo.jpg';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,12 +41,25 @@ export const Header = () => {
             <a href="#contact" className="text-foreground hover:text-primary transition-colors">
               {t('contact', language)}
             </a>
+            <Link to="/admin" className="text-foreground hover:text-primary transition-colors flex items-center gap-1">
+              <Shield className="h-4 w-4" />
+              Admin
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
             <LoyaltyBadge />
             <ThemeToggle />
             <LanguageSelector />
+            <Button
+              variant="ghost"
+              size="icon"
+              asChild
+            >
+              <Link to="/admin">
+                <Shield className="h-5 w-5 text-primary" />
+              </Link>
+            </Button>
             <Button
               variant="ghost"
               size="icon"
