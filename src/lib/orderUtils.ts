@@ -1,9 +1,18 @@
 import jsPDF from 'jspdf';
 
 export const generateOrderNumber = (): string => {
-  const year = new Date().getFullYear();
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `HJ-${year}-${random}`;
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const time = [
+    String(now.getHours()).padStart(2, '0'),
+    String(now.getMinutes()).padStart(2, '0'),
+    String(now.getSeconds()).padStart(2, '0'),
+  ].join('');
+  const random = Math.floor(100 + Math.random() * 900).toString();
+
+  return `HJ-${year}${month}${day}-${time}-${random}`;
 };
 
 export const generateReceiptPDF = (orderData: {

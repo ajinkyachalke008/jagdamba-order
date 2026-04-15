@@ -96,27 +96,29 @@ export default function Checkout() {
     try {
       const orderNumber = generateOrderNumber();
       const total = getTotal();
+      const customerName = formData.customerName.trim();
+      const deliveryAddress = formData.deliveryMethod === 'home_delivery'
+        ? (locationLink ? `${formData.deliveryAddress.trim()} | Location: ${locationLink}` : formData.deliveryAddress.trim())
+        : null;
 
       const { data: order, error: orderError } = await (supabase as any)
         .from('orders' as any)
         .insert({
           order_number: orderNumber,
-          customer_name: formData.customerName.trim(),
+          customer_name: customerName,
           customer_phone: formData.customerPhone,
           delivery_method: formData.deliveryMethod,
-          delivery_address: formData.deliveryMethod === 'home_delivery' 
-            ? (locationLink ? `${formData.deliveryAddress.trim()} | Location: ${locationLink}` : formData.deliveryAddress.trim())
-            : null,
+          delivery_address: deliveryAddress,
           payment_method: formData.paymentMethod,
           subtotal: total,
           gst: 0,
-          total: total
+          total,
         })
         .select()
         .single();
 
       if (orderError) throw orderError;
-      if (!order) throw new Error('Failed to create order');
+      if (!order?.id) throw new Error('Failed to create order');
 
       const orderItems = cart.map(item => ({
         order_id: order.id,
@@ -124,7 +126,7 @@ export default function Checkout() {
         item_name_mr: item.nameMr,
         quantity: item.quantity,
         price: item.price,
-        subtotal: item.price * item.quantity
+        subtotal: item.price * item.quantity,
       }));
 
       const { error: itemsError } = await (supabase as any)
@@ -133,62 +135,38 @@ export default function Checkout() {
 
       if (itemsError) throw itemsError;
 
-      // Send Telegram notification
       try {
-        await supabase.functions.invoke('send-telegram-notification', {
+        const { error: notificationError } = await supabase.functions.invoke('send-telegram-notification', {
           body: {
             orderNumber,
-            customerName: formData.customerName.trim(),
+            customerName,
             customerPhone: formData.customerPhone,
             deliveryMethod: formData.deliveryMethod,
-            deliveryAddress: formData.deliveryMethod === 'home_delivery' 
-              ? (locationLink ? `${formData.deliveryAddress.trim()} | Location: ${locationLink}` : formData.deliveryAddress.trim())
-              : undefined,
+            deliveryAddress: deliveryAddress || undefined,
             paymentMethod: formData.paymentMethod,
             items: cart.map(item => ({
               nameEn: item.nameEn,
               nameMr: item.nameMr,
               quantity: item.quantity,
-              price: item.price
+              price: item.price,
             })),
             subtotal: total,
             gst: 0,
-            total
-          }
+            total,
+          },
         });
+
+        if (notificationError) {
+          console.error('Telegram notification returned an error:', notificationError);
+        }
       } catch (notifError) {
         console.error('Failed to send Telegram notification:', notifError);
       }
 
-      // Build receipt data for the receipt page
-      const receiptItems = cart.map(item => ({
-        id: item.id,
-        name: getName(item, language),
-        quantity: item.quantity,
-        unitPrice: item.price,
-        totalPrice: item.price * item.quantity,
-      }));
-      const receiptOrder = {
-        orderId: `#${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`,
-        customerName: formData.customerName.trim(),
-        customerPhone: formData.customerPhone,
-        deliveryAddress: formData.deliveryMethod === 'home_delivery' ? formData.deliveryAddress.trim() : undefined,
-        orderType: formData.deliveryMethod === 'pickup' ? 'Parcel' : 'Delivery',
-        items: receiptItems,
-        subtotal: total,
-        taxRate: 0,
-        taxAmount: 0,
-        grandTotal: total,
-        orderTimestamp: new Date().toISOString(),
-        status: 'Confirmed',
-      };
-
-      // Add loyalty points
       addLoyaltyPoints(total);
-
       clearCart();
       toast.success(t('orderPlaced', language));
-      navigate('/receipt', { state: { order: receiptOrder } });
+      navigate(`/order-success/${order.id}`);
     } catch (error) {
       console.error('Order submission error:', error);
       toast.error(t('orderFailed', language));

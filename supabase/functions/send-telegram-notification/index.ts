@@ -5,7 +5,7 @@ const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface OrderNotification {
@@ -33,6 +33,9 @@ serve(async (req) => {
   }
 
   try {
+    if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN is not configured');
+    if (!TELEGRAM_CHAT_ID) throw new Error('TELEGRAM_CHAT_ID is not configured');
+
     const orderData: OrderNotification = await req.json();
     console.log('Sending Telegram notification for order:', orderData.orderNumber);
 
