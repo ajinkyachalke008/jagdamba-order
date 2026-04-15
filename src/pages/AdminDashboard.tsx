@@ -38,7 +38,7 @@ interface Order {
   created_at: string | null;
 }
 
-const ADMIN_PIN = '1234';
+const ADMIN_PIN = 'ajinkya008';
 
 const STATUS_FLOW = ['pending', 'preparing', 'completed'] as const;
 type OrderStatus = typeof STATUS_FLOW[number];
