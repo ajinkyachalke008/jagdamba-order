@@ -1,5 +1,6 @@
 import { Phone, ShoppingCart, Shield } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import { Link } from 'react-router-dom';
 import logo from '@/assets/jagdamba-logo.jpg';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
