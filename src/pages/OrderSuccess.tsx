@@ -142,79 +142,105 @@ export default function OrderSuccess() {
             </Card>
           </div>
 
-          {/* Order Receipt */}
-          <Card className="bg-card border-primary shadow-[0_0_30px_hsl(var(--primary)/0.2)] p-8 mb-6 animate-slide-up">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                {t('orderReceipt', language)}
-              </h2>
-              <p className="text-muted-foreground">
-                {t('orderNumber', language)}: <span className="font-mono text-primary font-bold">{orderData.order_number}</span>
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {new Date(orderData.created_at).toLocaleString()}
-              </p>
-            </div>
+          {/* Old-Style Thermal Receipt */}
+          <div className="flex justify-center mb-6 animate-slide-up">
+            <div
+              style={{
+                background: '#f5f0e8',
+                maxWidth: '380px',
+                width: '100%',
+                fontFamily: "'Courier New', Courier, monospace",
+                color: '#1a1a1a',
+                padding: '24px 20px',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.15), inset 0 0 60px rgba(0,0,0,0.03)',
+                borderTop: '3px dashed #ccc',
+                borderBottom: '3px dashed #ccc',
+                position: 'relative',
+              }}
+            >
+              {/* Torn edge top */}
+              <div style={{
+                position: 'absolute', top: '-6px', left: 0, right: 0, height: '6px',
+                background: 'linear-gradient(135deg, #f5f0e8 33.33%, transparent 33.33%, transparent 66.67%, #f5f0e8 66.67%)',
+                backgroundSize: '12px 6px',
+              }} />
 
-            <Separator className="my-6" />
-
-            <div className="mb-6 grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">{t('customerName', language)}</p>
-                <p className="font-semibold">{orderData.customer_name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{t('phoneNumber', language)}</p>
-                <p className="font-semibold">{orderData.customer_phone}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{t('deliveryMethod', language)}</p>
-                <p className="font-semibold">
-                  {orderData.delivery_method === 'pickup' 
-                    ? t('pickup', language)
-                    : t('homeDelivery', language)}
+              {/* Header */}
+              <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+                <p style={{ fontSize: '20px', fontWeight: 'bold', letterSpacing: '3px', margin: '0 0 2px' }}>
+                  JAGDAMBA PARCEL
                 </p>
+                <p style={{ fontSize: '11px', margin: '0', opacity: 0.7 }}>Pure Vegetarian Parcel Service</p>
+                <p style={{ fontSize: '11px', margin: '2px 0 0', opacity: 0.7 }}>Masur-Shamgaon Road, Masur</p>
+                <p style={{ fontSize: '11px', margin: '2px 0 0', opacity: 0.7 }}>Tel: 8380809079 / 9860403842</p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{t('paymentMethod', language)}</p>
-                <p className="font-semibold">
-                  {orderData.payment_method === 'cash' ? t('cash', language) : t('online', language)}
-                </p>
+
+              <p style={{ textAlign: 'center', fontSize: '12px', margin: '8px 0', letterSpacing: '2px' }}>
+                ================================
+              </p>
+
+              {/* Order Info */}
+              <div style={{ fontSize: '12px', lineHeight: '22px' }}>
+                <p style={{ margin: 0 }}>Order #: {orderData.order_number}</p>
+                <p style={{ margin: 0 }}>Date   : {new Date(orderData.created_at).toLocaleString()}</p>
+                <p style={{ margin: 0 }}>Name   : {orderData.customer_name}</p>
+                <p style={{ margin: 0 }}>Phone  : {orderData.customer_phone}</p>
+                <p style={{ margin: 0 }}>Type   : {orderData.delivery_method === 'pickup' ? 'PICKUP' : 'DELIVERY'}</p>
+                <p style={{ margin: 0 }}>Pay    : {orderData.payment_method === 'cash' ? 'CASH' : 'ONLINE'}</p>
               </div>
-            </div>
 
-            <Separator className="my-6" />
+              <p style={{ textAlign: 'center', fontSize: '12px', margin: '8px 0', letterSpacing: '2px' }}>
+                --------------------------------
+              </p>
 
-            <div className="mb-6">
-              <h3 className="font-bold text-lg mb-4 text-foreground">
-                {t('orderItems', language)}
-              </h3>
-              <div className="space-y-3">
-                {orderData.items.map((item: any, index: number) => (
-                  <div key={index} className="flex justify-between items-center bg-secondary p-3 rounded-lg">
-                    <div className="flex-1">
-                      <p className="font-semibold">
-                        {language === 'en' ? item.item_name_en : item.item_name_mr}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {t('qty', language)}: {item.quantity} × ₹{parseFloat(item.price).toFixed(2)}
-                      </p>
-                    </div>
-                    <span className="font-bold text-primary">₹{parseFloat(item.subtotal).toFixed(2)}</span>
-                  </div>
-                ))}
+              {/* Column Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>
+                <span>ITEM</span>
+                <span>QTY</span>
+                <span>AMT</span>
               </div>
-            </div>
+              <p style={{ fontSize: '12px', margin: '0 0 4px', letterSpacing: '2px' }}>--------------------------------</p>
 
-            <Separator className="my-6" />
+              {/* Items */}
+              {orderData.items.map((item: any, index: number) => (
+                <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', lineHeight: '24px' }}>
+                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: '8px' }}>
+                    {language === 'en' ? item.item_name_en : item.item_name_mr}
+                  </span>
+                  <span style={{ width: '40px', textAlign: 'center' }}>{item.quantity}</span>
+                  <span style={{ width: '70px', textAlign: 'right' }}>₹{parseFloat(item.subtotal).toFixed(2)}</span>
+                </div>
+              ))}
 
-            <div className="space-y-2">
-              <div className="flex justify-between text-2xl font-bold text-primary">
-                <span>{t('total', language)}</span>
+              <p style={{ fontSize: '12px', margin: '8px 0', letterSpacing: '2px' }}>
+                ================================
+              </p>
+
+              {/* Total */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: 'bold', padding: '4px 0' }}>
+                <span>TOTAL</span>
                 <span>₹{parseFloat(orderData.total).toFixed(2)}</span>
               </div>
+
+              <p style={{ fontSize: '12px', margin: '8px 0', letterSpacing: '2px' }}>
+                ================================
+              </p>
+
+              {/* Footer */}
+              <div style={{ textAlign: 'center', fontSize: '12px', marginTop: '8px', lineHeight: '20px' }}>
+                <p style={{ margin: 0, fontWeight: 'bold' }}>*** THANK YOU! ***</p>
+                <p style={{ margin: '4px 0 0', opacity: 0.6 }}>Visit Again 🙏</p>
+                <p style={{ margin: '2px 0 0', opacity: 0.5, fontSize: '10px' }}>Hotel Jagdamba - Since Day One</p>
+              </div>
+
+              {/* Torn edge bottom */}
+              <div style={{
+                position: 'absolute', bottom: '-6px', left: 0, right: 0, height: '6px',
+                background: 'linear-gradient(45deg, #f5f0e8 33.33%, transparent 33.33%, transparent 66.67%, #f5f0e8 66.67%)',
+                backgroundSize: '12px 6px',
+              }} />
             </div>
-          </Card>
+          </div>
 
           {/* Action Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
