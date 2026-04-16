@@ -418,19 +418,52 @@ export default function OrderSuccess() {
       return best;
     }
 
+    // Touch ripple spawner
+    function spawnRipple(x: number, y: number) {
+      const ripple = document.createElement('div');
+      ripple.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:0;height:0;border-radius:50%;border:2px solid rgba(255,165,0,0.7);pointer-events:none;z-index:11;transform:translate(-50%,-50%);`;
+      document.getElementById('touch-fx-layer')?.appendChild(ripple);
+      ripple.animate([
+        { width: '0px', height: '0px', opacity: 0.8, borderWidth: '2px' },
+        { width: '80px', height: '80px', opacity: 0, borderWidth: '0.5px' },
+      ], { duration: 500, easing: 'ease-out' });
+      setTimeout(() => ripple.remove(), 500);
+    }
+
+    // Trail dot spawner
+    function spawnTrail(x: number, y: number) {
+      const dot = document.createElement('div');
+      dot.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle,rgba(255,165,0,0.6),transparent);pointer-events:none;z-index:11;transform:translate(-50%,-50%);`;
+      document.getElementById('touch-fx-layer')?.appendChild(dot);
+      dot.animate([
+        { opacity: 0.8, transform: 'translate(-50%,-50%) scale(1)' },
+        { opacity: 0, transform: 'translate(-50%,-50%) scale(0.2)' },
+      ], { duration: 400, easing: 'ease-out' });
+      setTimeout(() => dot.remove(), 400);
+    }
+
     const onPointerDown = (e: PointerEvent) => {
       const [wx, wy, wz] = unproject(e.clientX, e.clientY, Math.sqrt(camPos[2] * camPos[2]));
       const nearest = findNearest(wx, wy, wz);
       if (nearest >= 0 && !pinned[nearest]) {
         grabbed = nearest;
         grabDepth = camPos[2] - pos[nearest * 3 + 2];
+        // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(15);
+        // Ripple
+        spawnRipple(e.clientX, e.clientY);
         if (indicatorRef.current) {
           indicatorRef.current.style.display = 'block';
           indicatorRef.current.style.left = e.clientX + 'px';
           indicatorRef.current.style.top = e.clientY + 'px';
+          indicatorRef.current.style.transform = 'translate(-50%,-50%) scale(1.3)';
+          setTimeout(() => {
+            if (indicatorRef.current) indicatorRef.current.style.transform = 'translate(-50%,-50%) scale(1)';
+          }, 150);
         }
       }
     };
+    let trailFrame = 0;
     const onPointerMove = (e: PointerEvent) => {
       if (grabbed < 0) return;
       const [wx, wy, wz] = unproject(e.clientX, e.clientY, grabDepth);
@@ -440,10 +473,22 @@ export default function OrderSuccess() {
         indicatorRef.current.style.left = e.clientX + 'px';
         indicatorRef.current.style.top = e.clientY + 'px';
       }
+      // Trail dots every 3 frames
+      trailFrame++;
+      if (trailFrame % 3 === 0) spawnTrail(e.clientX, e.clientY);
     };
     const onPointerUp = () => {
+      if (grabbed >= 0 && navigator.vibrate) navigator.vibrate(8);
       grabbed = -1;
-      if (indicatorRef.current) indicatorRef.current.style.display = 'none';
+      if (indicatorRef.current) {
+        indicatorRef.current.style.transform = 'translate(-50%,-50%) scale(0.5)';
+        setTimeout(() => {
+          if (indicatorRef.current) {
+            indicatorRef.current.style.display = 'none';
+            indicatorRef.current.style.transform = 'translate(-50%,-50%) scale(1)';
+          }
+        }, 150);
+      }
     };
 
     glCanvas.addEventListener('pointerdown', onPointerDown);
