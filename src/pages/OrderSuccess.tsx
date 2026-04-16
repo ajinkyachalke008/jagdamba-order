@@ -418,19 +418,52 @@ export default function OrderSuccess() {
       return best;
     }
 
+    // Touch ripple spawner
+    function spawnRipple(x: number, y: number) {
+      const ripple = document.createElement('div');
+      ripple.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:0;height:0;border-radius:50%;border:2px solid rgba(255,165,0,0.7);pointer-events:none;z-index:11;transform:translate(-50%,-50%);`;
+      document.getElementById('touch-fx-layer')?.appendChild(ripple);
+      ripple.animate([
+        { width: '0px', height: '0px', opacity: 0.8, borderWidth: '2px' },
+        { width: '80px', height: '80px', opacity: 0, borderWidth: '0.5px' },
+      ], { duration: 500, easing: 'ease-out' });
+      setTimeout(() => ripple.remove(), 500);
+    }
+
+    // Trail dot spawner
+    function spawnTrail(x: number, y: number) {
+      const dot = document.createElement('div');
+      dot.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle,rgba(255,165,0,0.6),transparent);pointer-events:none;z-index:11;transform:translate(-50%,-50%);`;
+      document.getElementById('touch-fx-layer')?.appendChild(dot);
+      dot.animate([
+        { opacity: 0.8, transform: 'translate(-50%,-50%) scale(1)' },
+        { opacity: 0, transform: 'translate(-50%,-50%) scale(0.2)' },
+      ], { duration: 400, easing: 'ease-out' });
+      setTimeout(() => dot.remove(), 400);
+    }
+
     const onPointerDown = (e: PointerEvent) => {
       const [wx, wy, wz] = unproject(e.clientX, e.clientY, Math.sqrt(camPos[2] * camPos[2]));
       const nearest = findNearest(wx, wy, wz);
       if (nearest >= 0 && !pinned[nearest]) {
         grabbed = nearest;
         grabDepth = camPos[2] - pos[nearest * 3 + 2];
+        // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(15);
+        // Ripple
+        spawnRipple(e.clientX, e.clientY);
         if (indicatorRef.current) {
           indicatorRef.current.style.display = 'block';
           indicatorRef.current.style.left = e.clientX + 'px';
           indicatorRef.current.style.top = e.clientY + 'px';
+          indicatorRef.current.style.transform = 'translate(-50%,-50%) scale(1.3)';
+          setTimeout(() => {
+            if (indicatorRef.current) indicatorRef.current.style.transform = 'translate(-50%,-50%) scale(1)';
+          }, 150);
         }
       }
     };
+    let trailFrame = 0;
     const onPointerMove = (e: PointerEvent) => {
       if (grabbed < 0) return;
       const [wx, wy, wz] = unproject(e.clientX, e.clientY, grabDepth);
@@ -440,10 +473,22 @@ export default function OrderSuccess() {
         indicatorRef.current.style.left = e.clientX + 'px';
         indicatorRef.current.style.top = e.clientY + 'px';
       }
+      // Trail dots every 3 frames
+      trailFrame++;
+      if (trailFrame % 3 === 0) spawnTrail(e.clientX, e.clientY);
     };
     const onPointerUp = () => {
+      if (grabbed >= 0 && navigator.vibrate) navigator.vibrate(8);
       grabbed = -1;
-      if (indicatorRef.current) indicatorRef.current.style.display = 'none';
+      if (indicatorRef.current) {
+        indicatorRef.current.style.transform = 'translate(-50%,-50%) scale(0.5)';
+        setTimeout(() => {
+          if (indicatorRef.current) {
+            indicatorRef.current.style.display = 'none';
+            indicatorRef.current.style.transform = 'translate(-50%,-50%) scale(1)';
+          }
+        }, 150);
+      }
     };
 
     glCanvas.addEventListener('pointerdown', onPointerDown);
@@ -602,7 +647,8 @@ export default function OrderSuccess() {
         {!showCelebration && (
           <>
             <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1, cursor: 'grab' }} />
-            <div ref={indicatorRef} style={{ position: 'absolute', width: 32, height: 32, background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.25)', borderRadius: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', display: 'none', zIndex: 10 }} />
+            <div id="touch-fx-layer" style={{ position: 'absolute', inset: 0, zIndex: 11, pointerEvents: 'none', overflow: 'hidden' }} />
+            <div ref={indicatorRef} style={{ position: 'absolute', width: 36, height: 36, background: 'radial-gradient(circle, rgba(255,165,0,0.25), transparent)', border: '2px solid rgba(255,165,0,0.5)', borderRadius: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', display: 'none', zIndex: 12, transition: 'transform 150ms ease-out', boxShadow: '0 0 15px rgba(255,165,0,0.3), 0 0 30px rgba(255,165,0,0.1)' }} />
 
             <div style={{ position: 'absolute', bottom: 130, width: '100%', textAlign: 'center', zIndex: 2, pointerEvents: 'none', userSelect: 'none' }}>
               <p style={{ margin: 0, color: '#666', fontSize: 17, fontWeight: 500, letterSpacing: 0.5 }}>Grab and drag the receipt</p>
