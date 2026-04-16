@@ -647,7 +647,8 @@ export default function OrderSuccess() {
         {!showCelebration && (
           <>
             <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1, cursor: 'grab' }} />
-            <div ref={indicatorRef} style={{ position: 'absolute', width: 32, height: 32, background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.25)', borderRadius: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', display: 'none', zIndex: 10 }} />
+            <div id="touch-fx-layer" style={{ position: 'absolute', inset: 0, zIndex: 11, pointerEvents: 'none', overflow: 'hidden' }} />
+            <div ref={indicatorRef} style={{ position: 'absolute', width: 36, height: 36, background: 'radial-gradient(circle, rgba(255,165,0,0.25), transparent)', border: '2px solid rgba(255,165,0,0.5)', borderRadius: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', display: 'none', zIndex: 12, transition: 'transform 150ms ease-out', boxShadow: '0 0 15px rgba(255,165,0,0.3), 0 0 30px rgba(255,165,0,0.1)' }} />
 
             <div style={{ position: 'absolute', bottom: 130, width: '100%', textAlign: 'center', zIndex: 2, pointerEvents: 'none', userSelect: 'none' }}>
               <p style={{ margin: 0, color: '#666', fontSize: 17, fontWeight: 500, letterSpacing: 0.5 }}>Grab and drag the receipt</p>
