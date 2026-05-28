@@ -443,14 +443,16 @@ export default function OrderSuccess() {
     }
 
     const onPointerDown = (e: PointerEvent) => {
+      e.preventDefault();
+      try { glCanvas.setPointerCapture(e.pointerId); } catch {}
       const [wx, wy, wz] = unproject(e.clientX, e.clientY, Math.sqrt(camPos[2] * camPos[2]));
-      const nearest = findNearest(wx, wy, wz);
+      let nearest = findNearest(wx, wy, wz);
+      // Fallback: if nothing close, grab nearest particle anyway so a tap always engages
+      if (nearest < 0) nearest = findNearest(wx, wy, wz, true);
       if (nearest >= 0 && !pinned[nearest]) {
         grabbed = nearest;
         grabDepth = camPos[2] - pos[nearest * 3 + 2];
-        // Haptic feedback
         if (navigator.vibrate) navigator.vibrate(15);
-        // Ripple
         spawnRipple(e.clientX, e.clientY);
         if (indicatorRef.current) {
           indicatorRef.current.style.display = 'block';
