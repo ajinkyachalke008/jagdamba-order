@@ -408,8 +408,8 @@ export default function OrderSuccess() {
       return [camPos[0] + dirX * tt, camPos[1] + dirY * tt, camPos[2] + dirZ * tt];
     }
 
-    function findNearest(wx: number, wy: number, wz: number): number {
-      let best = -1, bestD = 1.0;
+    function findNearest(wx: number, wy: number, wz: number, any: boolean = false): number {
+      let best = -1, bestD = any ? Infinity : 1.0;
       for (let i = 0; i < total; i++) {
         const dx = pos[i * 3] - wx, dy = pos[i * 3 + 1] - wy, dz = pos[i * 3 + 2] - wz;
         const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
