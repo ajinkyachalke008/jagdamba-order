@@ -408,8 +408,8 @@ export default function OrderSuccess() {
       return [camPos[0] + dirX * tt, camPos[1] + dirY * tt, camPos[2] + dirZ * tt];
     }
 
-    function findNearest(wx: number, wy: number, wz: number): number {
-      let best = -1, bestD = 1.0;
+    function findNearest(wx: number, wy: number, wz: number, any: boolean = false): number {
+      let best = -1, bestD = any ? Infinity : 1.0;
       for (let i = 0; i < total; i++) {
         const dx = pos[i * 3] - wx, dy = pos[i * 3 + 1] - wy, dz = pos[i * 3 + 2] - wz;
         const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
@@ -443,14 +443,16 @@ export default function OrderSuccess() {
     }
 
     const onPointerDown = (e: PointerEvent) => {
+      e.preventDefault();
+      try { glCanvas.setPointerCapture(e.pointerId); } catch {}
       const [wx, wy, wz] = unproject(e.clientX, e.clientY, Math.sqrt(camPos[2] * camPos[2]));
-      const nearest = findNearest(wx, wy, wz);
+      let nearest = findNearest(wx, wy, wz);
+      // Fallback: if nothing close, grab nearest particle anyway so a tap always engages
+      if (nearest < 0) nearest = findNearest(wx, wy, wz, true);
       if (nearest >= 0 && !pinned[nearest]) {
         grabbed = nearest;
         grabDepth = camPos[2] - pos[nearest * 3 + 2];
-        // Haptic feedback
         if (navigator.vibrate) navigator.vibrate(15);
-        // Ripple
         spawnRipple(e.clientX, e.clientY);
         if (indicatorRef.current) {
           indicatorRef.current.style.display = 'block';
@@ -646,7 +648,7 @@ export default function OrderSuccess() {
 
         {!showCelebration && (
           <>
-            <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1, cursor: 'grab' }} />
+            <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1, cursor: 'grab', touchAction: 'none', WebkitUserSelect: 'none', userSelect: 'none' }} />
             <div id="touch-fx-layer" style={{ position: 'absolute', inset: 0, zIndex: 11, pointerEvents: 'none', overflow: 'hidden' }} />
             <div ref={indicatorRef} style={{ position: 'absolute', width: 36, height: 36, background: 'radial-gradient(circle, rgba(255,165,0,0.25), transparent)', border: '2px solid rgba(255,165,0,0.5)', borderRadius: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', display: 'none', zIndex: 12, transition: 'transform 150ms ease-out', boxShadow: '0 0 15px rgba(255,165,0,0.3), 0 0 30px rgba(255,165,0,0.1)' }} />
 
