@@ -346,14 +346,11 @@ export default function Checkout() {
                     )}
                   </div>
 
-                        
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {t('locationOptional', language)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t('locationOptional', language)}
+                  </p>
                 </div>
+
 
                 <Separator />
 
