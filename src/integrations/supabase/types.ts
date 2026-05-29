@@ -105,7 +105,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_order_by_tracking: {
+        Args: { _order_number: string; _phone: string }
+        Returns: Json
+      }
+      get_order_for_success: {
+        Args: { _order_id: string; _phone: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
