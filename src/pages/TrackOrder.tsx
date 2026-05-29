@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,66 +42,34 @@ export default function TrackOrder() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [orderNumber, setOrderNumber] = useState(searchParams.get('order') || '');
+  const [phone, setPhone] = useState('');
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
-  useEffect(() => {
-    if (searchParams.get('order')) {
-      handleSearch(searchParams.get('order')!);
-    }
-  }, []);
-
-  // Realtime subscription
-  useEffect(() => {
-    if (!order) return;
-    const channel = supabase
-      .channel(`track-${order.id}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'orders',
-        filter: `id=eq.${order.id}`,
-      }, (payload) => {
-        setOrder(prev => prev ? { ...prev, ...payload.new } : prev);
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [order?.id]);
-
-  const handleSearch = async (num?: string) => {
-    const searchNum = (num || orderNumber).trim().toUpperCase();
-    if (!searchNum) return;
+  const handleSearch = async () => {
+    const searchNum = orderNumber.trim().toUpperCase();
+    const searchPhone = phone.trim();
+    if (!searchNum || searchPhone.length < 4) return;
 
     setOrderNumber(searchNum);
     setLoading(true);
     setSearched(true);
 
     try {
-      const { data: orderData, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('order_number', searchNum)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const { data, error } = await (supabase as any).rpc('get_order_by_tracking', {
+        _order_number: searchNum,
+        _phone: searchPhone,
+      });
 
-      if (error || !orderData) {
+      if (error || !data) {
         setOrder(null);
         return;
       }
 
-      const { data: items, error: itemsError } = await supabase
-        .from('order_items')
-        .select('*')
-        .eq('order_id', orderData.id);
-
-      if (itemsError) {
-        console.error('Failed to load order items:', itemsError);
-      }
-
-      setOrder({ ...orderData, items: items || [] });
+      const o = (data as any).order;
+      const items = (data as any).items ?? [];
+      setOrder({ ...o, items });
     } finally {
       setLoading(false);
     }
@@ -129,19 +97,32 @@ export default function TrackOrder() {
       <main className="container mx-auto p-4 max-w-lg space-y-6">
         {/* Search */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Enter Order Number (e.g. JGD-XXXX)"
-                value={orderNumber}
-                onChange={(e) => setOrderNumber(e.target.value.toUpperCase())}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="font-mono"
-              />
-              <Button onClick={() => handleSearch()} disabled={loading}>
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-              </Button>
-            </div>
+          <CardContent className="p-4 space-y-2">
+            <Input
+              placeholder="Order Number (e.g. HJ-2025-XXXX)"
+              value={orderNumber}
+              onChange={(e) => setOrderNumber(e.target.value.toUpperCase())}
+              className="font-mono"
+            />
+            <Input
+              placeholder="Phone number used at checkout"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              inputMode="tel"
+            />
+            <Button onClick={handleSearch} disabled={loading} className="w-full">
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Search className="h-4 w-4 mr-2" /> Track Order
+                </>
+              )}
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              We require your phone number to protect your order details.
+            </p>
           </CardContent>
         </Card>
 
@@ -156,7 +137,9 @@ export default function TrackOrder() {
             <CardContent className="p-8 text-center">
               <Package className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
               <p className="text-lg font-medium text-foreground">Order Not Found</p>
-              <p className="text-sm text-muted-foreground mt-1">Please check your order number and try again</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Check your order number and phone number and try again
+              </p>
             </CardContent>
           </Card>
         )}
@@ -168,9 +151,7 @@ export default function TrackOrder() {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">Order #{order.order_number}</CardTitle>
-                  <Badge
-                    className={order.order_status === 'completed' ? 'bg-green-600' : 'bg-yellow-600'}
-                  >
+                  <Badge className={order.order_status === 'completed' ? 'bg-green-600' : 'bg-yellow-600'}>
                     {order.order_status === 'completed' ? '✅ Completed' : '⏳ In Progress'}
                   </Badge>
                 </div>
@@ -212,13 +193,17 @@ export default function TrackOrder() {
                 <div className="flex items-center gap-2 text-sm">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <span className="text-foreground">
-                    {order.delivery_method === 'home_delivery' ? `Delivery: ${order.delivery_address || 'N/A'}` : 'Pickup from restaurant'}
+                    {order.delivery_method === 'home_delivery'
+                      ? `Delivery: ${order.delivery_address || 'N/A'}`
+                      : 'Pickup from restaurant'}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">
-                    {order.created_at ? new Date(order.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : '-'}
+                    {order.created_at
+                      ? new Date(order.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+                      : '-'}
                   </span>
                 </div>
               </CardContent>
