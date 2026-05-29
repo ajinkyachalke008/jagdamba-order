@@ -2,3 +2,7 @@ project_id = "ibzcmzqkeppxpqvalrkc"
 
 [functions.send-telegram-notification]
 verify_jwt = false
+
+[functions.admin-orders]
+verify_jwt = false
+
