@@ -99,7 +99,7 @@ export default function Checkout() {
       const customerName = formData.customerName.trim();
       const deliveryAddress = formData.deliveryMethod === 'home_delivery'
         ? (locationLink ? `${formData.deliveryAddress.trim()} | Location: ${locationLink}` : formData.deliveryAddress.trim())
-        : null;
+        : (locationLink ? `Pickup | Location: ${locationLink}` : null);
 
       const { data: order, error: orderError } = await (supabase as any)
         .from('orders' as any)
@@ -143,6 +143,7 @@ export default function Checkout() {
             customerPhone: formData.customerPhone,
             deliveryMethod: formData.deliveryMethod,
             deliveryAddress: deliveryAddress || undefined,
+            locationLink: locationLink || undefined,
             paymentMethod: formData.paymentMethod,
             items: cart.map(item => ({
               nameEn: item.nameEn,
