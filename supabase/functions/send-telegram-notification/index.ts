@@ -14,6 +14,7 @@ interface OrderNotification {
   customerPhone: string;
   deliveryMethod: string;
   deliveryAddress?: string;
+  locationLink?: string;
   paymentMethod: string;
   items: Array<{
     nameEn: string;
@@ -46,12 +47,12 @@ serve(async (req) => {
 
     // Extract location link if present
     let addressText = orderData.deliveryAddress || '';
-    let locationLink = '';
-    
+    let locationLink = orderData.locationLink || '';
+
     if (orderData.deliveryAddress && orderData.deliveryAddress.includes('Location: ')) {
       const parts = orderData.deliveryAddress.split(' | Location: ');
       addressText = parts[0];
-      locationLink = parts[1] || '';
+      if (!locationLink) locationLink = parts[1] || '';
     }
 
     // Create the notification message
