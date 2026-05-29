@@ -23,6 +23,8 @@ export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   const [locationLink, setLocationLink] = useState('');
+  const [manualLocationLink, setManualLocationLink] = useState('');
+  const [showLocationFallback, setShowLocationFallback] = useState(false);
 
   const [formData, setFormData] = useState({
     customerName: '',
@@ -43,25 +45,34 @@ export default function Checkout() {
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
       toast.error(t('geoNotSupported', language));
+      setShowLocationFallback(true);
       return;
     }
 
     setIsCapturingLocation(true);
+    setShowLocationFallback(false);
     
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
         setLocationLink(mapsLink);
+        setManualLocationLink('');
         setIsCapturingLocation(false);
         toast.success(t('locationSuccess', language));
       },
-      () => {
+      (error) => {
         setIsCapturingLocation(false);
-        toast.error(t('locationFailed', language));
+        setShowLocationFallback(true);
+        toast.error(error.code === error.PERMISSION_DENIED ? t('locationPermissionDenied', language) : t('locationFailed', language));
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     );
+  };
+
+  const handleManualLocationChange = (value: string) => {
+    setManualLocationLink(value);
+    setLocationLink(value.trim());
   };
 
   const validateForm = (): boolean => {
@@ -94,6 +105,7 @@ export default function Checkout() {
     setIsSubmitting(true);
 
     try {
+      const orderId = crypto.randomUUID();
       const orderNumber = generateOrderNumber();
       const total = getTotal();
       const customerName = formData.customerName.trim();
@@ -101,9 +113,10 @@ export default function Checkout() {
         ? (locationLink ? `${formData.deliveryAddress.trim()} | Location: ${locationLink}` : formData.deliveryAddress.trim())
         : (locationLink ? `Pickup | Location: ${locationLink}` : null);
 
-      const { data: order, error: orderError } = await (supabase as any)
+      const { error: orderError } = await (supabase as any)
         .from('orders' as any)
         .insert({
+          id: orderId,
           order_number: orderNumber,
           customer_name: customerName,
           customer_phone: formData.customerPhone,
@@ -113,15 +126,12 @@ export default function Checkout() {
           subtotal: total,
           gst: 0,
           total,
-        })
-        .select()
-        .single();
+        });
 
       if (orderError) throw orderError;
-      if (!order?.id) throw new Error('Failed to create order');
 
       const orderItems = cart.map(item => ({
-        order_id: order.id,
+        order_id: orderId,
         item_name_en: item.nameEn,
         item_name_mr: item.nameMr,
         quantity: item.quantity,
@@ -168,9 +178,9 @@ export default function Checkout() {
       clearCart();
       toast.success(t('orderPlaced', language));
       try {
-        sessionStorage.setItem(`order_phone_${order.id}`, formData.customerPhone);
+        sessionStorage.setItem(`order_phone_${orderId}`, formData.customerPhone);
       } catch {}
-      navigate(`/order-success/${order.id}`, {
+      navigate(`/order-success/${orderId}`, {
         state: { phone: formData.customerPhone },
       });
     } catch (error) {
@@ -343,6 +353,19 @@ export default function Checkout() {
                         >
                           {t('clear', language)}
                         </Button>
+                      </div>
+                    )}
+
+                    {showLocationFallback && (
+                      <div className="mt-3 space-y-2 rounded-lg border border-border bg-secondary/60 p-3">
+                        <p className="text-sm text-muted-foreground">
+                          {t('pasteLocationHelp', language)}
+                        </p>
+                        <Input
+                          value={manualLocationLink}
+                          onChange={(e) => handleManualLocationChange(e.target.value)}
+                          placeholder={t('pasteLocationPlaceholder', language)}
+                        />
                       </div>
                     )}
                   </div>
