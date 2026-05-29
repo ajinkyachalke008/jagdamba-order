@@ -290,54 +290,62 @@ export default function Checkout() {
                           <p className="text-sm text-destructive mt-1">{errors.deliveryAddress}</p>
                         )}
                       </div>
-                      
-                      <div>
+                    </div>
+                  )}
+
+                  {/* Live location — available for both pickup and delivery */}
+                  <div className="mt-4">
+                    <Label className="mb-2 block">
+                      {t('shareLocation', language)}
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleShareLocation}
+                      disabled={isCapturingLocation}
+                      className="w-full border-primary hover:bg-primary/10"
+                    >
+                      {isCapturingLocation ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {t('capturingLocation', language)}
+                        </>
+                      ) : locationLink ? (
+                        <>
+                          <CheckCircle2 className="mr-2 h-4 w-4 text-primary" />
+                          {t('locationCaptured', language)}
+                        </>
+                      ) : (
+                        <>
+                          <MapPin className="mr-2 h-4 w-4" />
+                          {t('shareLocation', language)}
+                        </>
+                      )}
+                    </Button>
+
+                    {locationLink && (
+                      <div className="mt-2 flex items-center justify-between bg-secondary p-2 rounded-lg">
+                        <a
+                          href={locationLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary hover:underline truncate flex-1"
+                        >
+                          {t('viewOnMaps', language)}
+                        </a>
                         <Button
                           type="button"
-                          variant="outline"
-                          onClick={handleShareLocation}
-                          disabled={isCapturingLocation}
-                          className="w-full border-primary hover:bg-primary/10"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setLocationLink('')}
+                          className="ml-2 h-6 text-xs"
                         >
-                          {isCapturingLocation ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              {t('capturingLocation', language)}
-                            </>
-                          ) : locationLink ? (
-                            <>
-                              <CheckCircle2 className="mr-2 h-4 w-4 text-primary" />
-                              {t('locationCaptured', language)}
-                            </>
-                          ) : (
-                            <>
-                              <MapPin className="mr-2 h-4 w-4" />
-                              {t('shareLocation', language)}
-                            </>
-                          )}
+                          {t('clear', language)}
                         </Button>
-                        
-                        {locationLink && (
-                          <div className="mt-2 flex items-center justify-between bg-secondary p-2 rounded-lg">
-                            <a 
-                              href={locationLink} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-sm text-primary hover:underline truncate flex-1"
-                            >
-                              {t('viewOnMaps', language)}
-                            </a>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setLocationLink('')}
-                              className="ml-2 h-6 text-xs"
-                            >
-                              {t('clear', language)}
-                            </Button>
-                          </div>
-                        )}
+                      </div>
+                    )}
+                  </div>
+
                         
                         <p className="text-xs text-muted-foreground mt-1">
                           {t('locationOptional', language)}
