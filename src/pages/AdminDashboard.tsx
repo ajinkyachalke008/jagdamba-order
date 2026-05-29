@@ -38,7 +38,27 @@ interface Order {
   created_at: string | null;
 }
 
-const ADMIN_PIN = 'ajinkya008';
+const ADMIN_PIN_KEY = 'jagdamba_admin_pin';
+
+async function callAdmin(pin: string, body: Record<string, unknown>) {
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-orders`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-pin': pin,
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Request failed: ${res.status}`);
+  }
+  return res.json();
+}
+
 
 const STATUS_FLOW = ['pending', 'preparing', 'completed'] as const;
 type OrderStatus = typeof STATUS_FLOW[number];
@@ -72,6 +92,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [pin, setPin] = useState('');
+  const [adminPin, setAdminPin] = useState<string>('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'preparing' | 'completed' | 'today'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,46 +101,36 @@ export default function AdminDashboard() {
   const [loadingItems, setLoadingItems] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authenticated) return;
+    if (!authenticated || !adminPin) return;
     fetchOrders();
-
-    const channel = supabase
-      .channel('admin-orders')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-        fetchOrders();
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [authenticated]);
+    // Poll every 15s instead of realtime since anon no longer has SELECT on orders.
+    const interval = setInterval(fetchOrders, 15000);
+    return () => clearInterval(interval);
+  }, [authenticated, adminPin]);
 
   const fetchOrders = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      toast.error('Failed to load orders');
-    } else {
-      setOrders(data || []);
+    try {
+      const data = await callAdmin(adminPin, { action: 'list' });
+      setOrders(data.orders || []);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load orders');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const fetchOrderItems = async (orderId: string) => {
     if (orderItems[orderId]) return;
     setLoadingItems(orderId);
-    const { data, error } = await supabase
-      .from('order_items')
-      .select('*')
-      .eq('order_id', orderId);
-
-    if (!error && data) {
-      setOrderItems(prev => ({ ...prev, [orderId]: data as unknown as OrderItem[] }));
+    try {
+      const data = await callAdmin(adminPin, { action: 'items', order_id: orderId });
+      setOrderItems(prev => ({ ...prev, [orderId]: (data.items || []) as OrderItem[] }));
+    } catch (err) {
+      toast.error('Failed to load items');
+    } finally {
+      setLoadingItems(null);
     }
-    setLoadingItems(null);
   };
 
   const toggleExpand = (orderId: string) => {
@@ -133,26 +144,43 @@ export default function AdminDashboard() {
 
   const updateOrderStatus = async (id: string, status: string) => {
     setUpdatingId(id);
-    const { error } = await supabase
-      .from('orders')
-      .update({ order_status: status })
-      .eq('id', id);
-
-    if (error) {
-      toast.error('Failed to update order');
-    } else {
+    try {
+      await callAdmin(adminPin, { action: 'update_status', order_id: id, status });
       toast.success(`Order marked as ${status}`);
+      // Optimistic local update
+      setOrders(prev => prev.map(o => (o.id === id ? { ...o, order_status: status } : o)));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update order');
+    } finally {
+      setUpdatingId(null);
     }
-    setUpdatingId(null);
   };
 
-  const handleLogin = () => {
-    if (pin === ADMIN_PIN) {
+  const handleLogin = async () => {
+    try {
+      await callAdmin(pin, { action: 'verify_pin' });
+      setAdminPin(pin);
       setAuthenticated(true);
-    } else {
+      sessionStorage.setItem(ADMIN_PIN_KEY, pin);
+    } catch {
       toast.error('Invalid PIN');
     }
   };
+
+  // Restore PIN from session storage on mount
+  useEffect(() => {
+    const stored = sessionStorage.getItem(ADMIN_PIN_KEY);
+    if (stored && !authenticated) {
+      callAdmin(stored, { action: 'verify_pin' })
+        .then(() => {
+          setAdminPin(stored);
+          setAuthenticated(true);
+        })
+        .catch(() => sessionStorage.removeItem(ADMIN_PIN_KEY));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   if (!authenticated) {
     return (

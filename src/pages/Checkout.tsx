@@ -166,7 +166,12 @@ export default function Checkout() {
       addLoyaltyPoints(total);
       clearCart();
       toast.success(t('orderPlaced', language));
-      navigate(`/order-success/${order.id}`);
+      try {
+        sessionStorage.setItem(`order_phone_${order.id}`, formData.customerPhone);
+      } catch {}
+      navigate(`/order-success/${order.id}`, {
+        state: { phone: formData.customerPhone },
+      });
     } catch (error) {
       console.error('Order submission error:', error);
       toast.error(t('orderFailed', language));

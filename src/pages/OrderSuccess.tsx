@@ -272,14 +272,22 @@ export default function OrderSuccess() {
 
   const fetchOrderDetails = async () => {
     try {
-      const { data: order, error: orderError } = await (supabase as any)
-        .from('orders').select('*').eq('id', orderId).single();
-      if (orderError) throw orderError;
-      if (!order) throw new Error('Order not found');
-      const { data: items, error: itemsError } = await (supabase as any)
-        .from('order_items').select('*').eq('order_id', orderId);
-      if (itemsError) throw itemsError;
-      setOrderData({ ...(order as any), items });
+      const navState = (window.history.state?.usr ?? {}) as { phone?: string };
+      const phone =
+        navState.phone ||
+        sessionStorage.getItem(`order_phone_${orderId}`) ||
+        '';
+      if (!phone) throw new Error('Missing phone for order verification');
+
+      const { data, error } = await (supabase as any).rpc(
+        'get_order_for_success',
+        { _order_id: orderId, _phone: phone }
+      );
+      if (error) throw error;
+      if (!data) throw new Error('Order not found');
+      const order = (data as any).order;
+      const items = (data as any).items ?? [];
+      setOrderData({ ...order, items });
     } catch (error) {
       console.error('Error fetching order:', error);
       navigate('/');
