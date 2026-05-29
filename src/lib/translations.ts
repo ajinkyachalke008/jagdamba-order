@@ -118,6 +118,9 @@ const translations: Record<TranslationKey, Record<Language, string>> = {
   'geoNotSupported': { en: 'Geolocation is not supported by your browser', mr: 'तुमचा ब्राउझर स्थान शेअरिंग सपोर्ट करत नाही', hi: 'आपका ब्राउज़र जियोलोकेशन सपोर्ट नहीं करता' },
   'locationSuccess': { en: 'Location captured successfully!', mr: 'स्थान यशस्वीरित्या कॅप्चर केले!', hi: 'स्थान सफलतापूर्वक कैप्चर किया गया!' },
   'locationFailed': { en: 'Failed to capture location. Please enable location permissions.', mr: 'स्थान कॅप्चर करता आले नाही. कृपया स्थान परवानगी सक्षम करा.', hi: 'स्थान कैप्चर करने में विफल। कृपया स्थान अनुमति सक्षम करें।' },
+  'locationPermissionDenied': { en: 'Location permission is blocked. Allow location access in your browser or paste a Google Maps link below.', mr: 'स्थान परवानगी ब्लॉक आहे. ब्राउझरमध्ये लोकेशन परवानगी द्या किंवा खाली Google Maps लिंक पेस्ट करा.', hi: 'स्थान अनुमति ब्लॉक है। ब्राउज़र में लोकेशन अनुमति दें या नीचे Google Maps लिंक पेस्ट करें।' },
+  'pasteLocationHelp': { en: 'If automatic location is blocked, open Google Maps, share your location, and paste the link here.', mr: 'ऑटोमॅटिक लोकेशन ब्लॉक असल्यास Google Maps उघडा, तुमचे लोकेशन शेअर करा आणि लिंक येथे पेस्ट करा.', hi: 'अगर ऑटोमैटिक लोकेशन ब्लॉक है, तो Google Maps खोलें, अपना लोकेशन शेयर करें और लिंक यहां पेस्ट करें।' },
+  'pasteLocationPlaceholder': { en: 'Paste Google Maps location link', mr: 'Google Maps लोकेशन लिंक पेस्ट करा', hi: 'Google Maps लोकेशन लिंक पेस्ट करें' },
 
   // Theme
   'darkMode': { en: 'Dark Mode', mr: 'डार्क मोड', hi: 'डार्क मोड' },
