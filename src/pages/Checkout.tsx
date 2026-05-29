@@ -355,6 +355,19 @@ export default function Checkout() {
                         </Button>
                       </div>
                     )}
+
+                    {showLocationFallback && (
+                      <div className="mt-3 space-y-2 rounded-lg border border-border bg-secondary/60 p-3">
+                        <p className="text-sm text-muted-foreground">
+                          {t('pasteLocationHelp', language)}
+                        </p>
+                        <Input
+                          value={manualLocationLink}
+                          onChange={(e) => handleManualLocationChange(e.target.value)}
+                          placeholder={t('pasteLocationPlaceholder', language)}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <p className="text-xs text-muted-foreground mt-1">
