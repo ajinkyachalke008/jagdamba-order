@@ -61,7 +61,10 @@ export const FloatingCart = () => {
             </div>
             <Button
               className="w-full bg-primary text-primary-foreground text-xs h-8"
-              onClick={() => navigate('/checkout')}
+              onClick={() => {
+                navigate('/checkout');
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+              }}
             >
               {language === 'mr' ? 'ऑर्डर करा' : language === 'hi' ? 'ऑर्डर करें' : 'Proceed to Order'}
             </Button>
