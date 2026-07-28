@@ -653,7 +653,7 @@ export default function OrderSuccess() {
   if (!webglFailed) {
     return (
       <div style={{ margin: 0, padding: 0, background: '#0a0a0a', overflow: 'hidden', touchAction: 'none', width: '100vw', height: '100vh', position: 'relative' }}>
-        {showCelebration && <CelebrationOverlay onDone={() => setShowCelebration(false)} />}
+        {showCelebration && <NewCelebrationOverlay orderNumber={orderData?.order_number} onDone={() => setShowCelebration(false)} />}
 
         {!showCelebration && (
           <>
