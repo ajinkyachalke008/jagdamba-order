@@ -25,6 +25,7 @@ export const MobileCartModal = ({ isOpen, onClose }: MobileCartModalProps) => {
   const handleCheckout = () => {
     onClose();
     navigate('/checkout');
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   };
 
   return (
