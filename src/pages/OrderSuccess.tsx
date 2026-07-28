@@ -10,6 +10,7 @@ import { generateReceiptPDF } from '@/lib/orderUtils';
 import { useCart } from '@/contexts/CartContext';
 import { t } from '@/lib/translations';
 import jsPDF from 'jspdf';
+import { CelebrationOverlay as NewCelebrationOverlay } from '@/components/CelebrationOverlay';
 
 /* ---------- date helper ---------- */
 function formatDate(iso: string): string {
