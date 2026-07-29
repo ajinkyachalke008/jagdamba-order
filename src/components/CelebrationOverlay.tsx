@@ -15,17 +15,22 @@ interface Props {
  * -> chime + confetti rain -> heading letters -> subtext -> order # scramble
  * -> pill -> bottom toast with gradient progress bar.
  */
-export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration = 6200 }: Props) {
+export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration = 7800 }: Props) {
   const reduce = useReducedMotion();
   const [phase, setPhase] = useState<'drop' | 'impact' | 'settle'>('drop');
   const [shake, setShake] = useState(false);
   const [showCheck, setShowCheck] = useState(false);
+  const [showBurstLines, setShowBurstLines] = useState(false);
   const [showHeading, setShowHeading] = useState(false);
+  const [showThanks, setShowThanks] = useState(false);
   const [showSub, setShowSub] = useState(false);
   const [showOrder, setShowOrder] = useState(false);
   const [showPill, setShowPill] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [showBalloons, setShowBalloons] = useState(false);
+  const [showEmojiRain, setShowEmojiRain] = useState(false);
   const rainStopRef = useRef<(() => void) | null>(null);
+  const fireworksStopRef = useRef<(() => void) | null>(null);
 
   // ---------- SOUND (Tone.js) ----------
   const playImpactSound = async () => {
