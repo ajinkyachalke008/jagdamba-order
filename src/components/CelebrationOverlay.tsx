@@ -127,21 +127,75 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
     const tick = () => {
       if (stopped) return;
       confetti({
-        particleCount: 3,
+        particleCount: 4,
         angle: 270,
-        spread: 90,
-        startVelocity: 20,
+        spread: 100,
+        startVelocity: 22,
         gravity: 0.6,
-        drift: (Math.random() - 0.5) * 1.5,
+        drift: (Math.random() - 0.5) * 1.8,
         origin: { x: Math.random(), y: -0.05 },
         colors: [...CONFETTI_COLORS, ...METALLIC],
-        scalar: 0.9,
-        ticks: 300,
+        scalar: 0.95,
+        ticks: 320,
+        shapes: ['square', 'circle'],
       });
-      raf = window.setTimeout(tick, 120) as unknown as number;
+      // occasional streamer
+      if (Math.random() < 0.15) {
+        confetti({
+          particleCount: 2,
+          angle: 270,
+          spread: 30,
+          startVelocity: 35,
+          gravity: 0.35,
+          origin: { x: Math.random(), y: -0.05 },
+          colors: METALLIC,
+          scalar: 1.6,
+          ticks: 400,
+          shapes: ['square'],
+        });
+      }
+      raf = window.setTimeout(tick, 110) as unknown as number;
     };
     tick();
     rainStopRef.current = () => { stopped = true; clearTimeout(raf); };
+  };
+
+  // periodic fireworks bursts from random corners
+  const startFireworks = () => {
+    if (reduce) return;
+    let stopped = false;
+    const shoot = () => {
+      if (stopped) return;
+      const x = 0.15 + Math.random() * 0.7;
+      const y = 0.2 + Math.random() * 0.35;
+      confetti({
+        particleCount: 60,
+        spread: 360,
+        startVelocity: 30,
+        origin: { x, y },
+        colors: CONFETTI_COLORS,
+        scalar: 0.85,
+        ticks: 180,
+        shapes: ['circle'],
+      });
+      playFireworkPop();
+      setTimeout(shoot, 900 + Math.random() * 700);
+    };
+    setTimeout(shoot, 400);
+    fireworksStopRef.current = () => { stopped = true; };
+  };
+
+  const playFireworkPop = async () => {
+    try {
+      await Tone.start();
+      const noise = new Tone.NoiseSynth({
+        noise: { type: 'white' },
+        envelope: { attack: 0.001, decay: 0.25, sustain: 0 },
+      }).toDestination();
+      noise.volume.value = -22;
+      noise.triggerAttackRelease('16n');
+      setTimeout(() => noise.dispose(), 800);
+    } catch {}
   };
 
   // ---------- TIMELINE ----------
