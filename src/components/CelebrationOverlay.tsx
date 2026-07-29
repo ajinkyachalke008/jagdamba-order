@@ -577,4 +577,103 @@ function SparkleLayer() {
   );
 }
 
+function BalloonLayer() {
+  const balloons = useMemo(
+    () =>
+      Array.from({ length: 10 }, (_, i) => ({
+        left: 5 + Math.random() * 90,
+        color: ['#f97316', '#ec4899', '#a855f7', '#38bdf8', '#facc15', '#4ade80'][i % 6],
+        size: 28 + Math.random() * 18,
+        delay: Math.random() * 2.5,
+        duration: 6 + Math.random() * 4,
+        sway: 10 + Math.random() * 20,
+      })),
+    []
+  );
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {balloons.map((b, i) => (
+        <motion.div
+          key={i}
+          className="absolute"
+          style={{ left: `${b.left}%`, bottom: -80 }}
+          initial={{ y: 0, x: 0, opacity: 0 }}
+          animate={{ y: -window.innerHeight - 120, x: [0, b.sway, -b.sway, 0], opacity: [0, 1, 1, 0] }}
+          transition={{ duration: b.duration, delay: b.delay, repeat: Infinity, ease: 'easeOut' }}
+        >
+          <div
+            style={{
+              width: b.size,
+              height: b.size * 1.2,
+              background: `radial-gradient(circle at 30% 30%, #fff8, ${b.color} 60%, ${b.color})`,
+              borderRadius: '50%',
+              boxShadow: `0 0 20px ${b.color}88`,
+            }}
+          />
+          <div style={{ width: 1, height: 30, background: 'rgba(255,255,255,0.4)', margin: '0 auto' }} />
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function EmojiRain() {
+  const EMOJIS = ['🎉', '🎊', '✨', '🥳', '📦', '⭐', '💫', '🎈'];
+  const items = useMemo(
+    () =>
+      Array.from({ length: 22 }, (_, i) => ({
+        left: Math.random() * 100,
+        emoji: EMOJIS[i % EMOJIS.length],
+        size: 20 + Math.random() * 22,
+        delay: Math.random() * 4,
+        duration: 5 + Math.random() * 4,
+        rotate: (Math.random() - 0.5) * 720,
+      })),
+    []
+  );
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {items.map((it, i) => (
+        <motion.span
+          key={i}
+          className="absolute"
+          style={{ left: `${it.left}%`, top: -40, fontSize: it.size }}
+          initial={{ y: 0, opacity: 0, rotate: 0 }}
+          animate={{ y: window.innerHeight + 80, opacity: [0, 1, 1, 0], rotate: it.rotate }}
+          transition={{ duration: it.duration, delay: it.delay, repeat: Infinity, ease: 'linear' }}
+        >
+          {it.emoji}
+        </motion.span>
+      ))}
+    </div>
+  );
+}
+
+function BurstLines() {
+  const lines = useMemo(
+    () => Array.from({ length: 14 }, (_, i) => ({ angle: (360 / 14) * i, len: 120 + Math.random() * 80 })),
+    []
+  );
+  return (
+    <div className="pointer-events-none absolute left-1/2 top-[36%] -translate-x-1/2 -translate-y-1/2">
+      {lines.map((l, i) => (
+        <motion.div
+          key={i}
+          className="absolute left-0 top-0 origin-left"
+          style={{
+            width: l.len,
+            height: 3,
+            background: 'linear-gradient(90deg, rgba(250,204,21,0.9), transparent)',
+            transform: `rotate(${l.angle}deg)`,
+            borderRadius: 2,
+          }}
+          initial={{ scaleX: 0, opacity: 0 }}
+          animate={{ scaleX: [0, 1, 1], opacity: [0, 1, 0] }}
+          transition={{ duration: 0.9, ease: 'easeOut' }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default CelebrationOverlay;
