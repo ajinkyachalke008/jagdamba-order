@@ -15,17 +15,22 @@ interface Props {
  * -> chime + confetti rain -> heading letters -> subtext -> order # scramble
  * -> pill -> bottom toast with gradient progress bar.
  */
-export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration = 6200 }: Props) {
+export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration = 7800 }: Props) {
   const reduce = useReducedMotion();
   const [phase, setPhase] = useState<'drop' | 'impact' | 'settle'>('drop');
   const [shake, setShake] = useState(false);
   const [showCheck, setShowCheck] = useState(false);
+  const [showBurstLines, setShowBurstLines] = useState(false);
   const [showHeading, setShowHeading] = useState(false);
+  const [showThanks, setShowThanks] = useState(false);
   const [showSub, setShowSub] = useState(false);
   const [showOrder, setShowOrder] = useState(false);
   const [showPill, setShowPill] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [showBalloons, setShowBalloons] = useState(false);
+  const [showEmojiRain, setShowEmojiRain] = useState(false);
   const rainStopRef = useRef<(() => void) | null>(null);
+  const fireworksStopRef = useRef<(() => void) | null>(null);
 
   // ---------- SOUND (Tone.js) ----------
   const playImpactSound = async () => {
@@ -122,66 +127,117 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
     const tick = () => {
       if (stopped) return;
       confetti({
-        particleCount: 3,
+        particleCount: 4,
         angle: 270,
-        spread: 90,
-        startVelocity: 20,
+        spread: 100,
+        startVelocity: 22,
         gravity: 0.6,
-        drift: (Math.random() - 0.5) * 1.5,
+        drift: (Math.random() - 0.5) * 1.8,
         origin: { x: Math.random(), y: -0.05 },
         colors: [...CONFETTI_COLORS, ...METALLIC],
-        scalar: 0.9,
-        ticks: 300,
+        scalar: 0.95,
+        ticks: 320,
+        shapes: ['square', 'circle'],
       });
-      raf = window.setTimeout(tick, 120) as unknown as number;
+      // occasional streamer
+      if (Math.random() < 0.15) {
+        confetti({
+          particleCount: 2,
+          angle: 270,
+          spread: 30,
+          startVelocity: 35,
+          gravity: 0.35,
+          origin: { x: Math.random(), y: -0.05 },
+          colors: METALLIC,
+          scalar: 1.6,
+          ticks: 400,
+          shapes: ['square'],
+        });
+      }
+      raf = window.setTimeout(tick, 110) as unknown as number;
     };
     tick();
     rainStopRef.current = () => { stopped = true; clearTimeout(raf); };
+  };
+
+  // periodic fireworks bursts from random corners
+  const startFireworks = () => {
+    if (reduce) return;
+    let stopped = false;
+    const shoot = () => {
+      if (stopped) return;
+      const x = 0.15 + Math.random() * 0.7;
+      const y = 0.2 + Math.random() * 0.35;
+      confetti({
+        particleCount: 60,
+        spread: 360,
+        startVelocity: 30,
+        origin: { x, y },
+        colors: CONFETTI_COLORS,
+        scalar: 0.85,
+        ticks: 180,
+        shapes: ['circle'],
+      });
+      playFireworkPop();
+      setTimeout(shoot, 900 + Math.random() * 700);
+    };
+    setTimeout(shoot, 400);
+    fireworksStopRef.current = () => { stopped = true; };
+  };
+
+  const playFireworkPop = async () => {
+    try {
+      await Tone.start();
+      const noise = new Tone.NoiseSynth({
+        noise: { type: 'white' },
+        envelope: { attack: 0.001, decay: 0.25, sustain: 0 },
+      }).toDestination();
+      noise.volume.value = -22;
+      noise.triggerAttackRelease('16n');
+      setTimeout(() => noise.dispose(), 800);
+    } catch {}
   };
 
   // ---------- TIMELINE ----------
   useEffect(() => {
     if (reduce) {
       setPhase('settle');
-      setShowCheck(true); setShowHeading(true); setShowSub(true);
-      setShowOrder(true); setShowPill(true); setShowToast(true);
+      setShowCheck(true); setShowBurstLines(true); setShowHeading(true); setShowThanks(true); setShowSub(true);
+      setShowOrder(true); setShowPill(true); setShowToast(true); setShowBalloons(true); setShowEmojiRain(true);
       const t = setTimeout(() => onDone?.(), duration);
       return () => clearTimeout(t);
     }
 
     const timers: number[] = [];
-    // impact at 520ms
     timers.push(window.setTimeout(() => {
       setPhase('impact');
       setShake(true);
+      setShowBurstLines(true);
       fireImpactConfetti();
       playImpactSound();
       window.setTimeout(() => setShake(false), 320);
     }, 520));
-    // spring back at 560ms
     timers.push(window.setTimeout(() => setPhase('settle'), 560));
-    // checkmark + chime + rain at 620ms
     timers.push(window.setTimeout(() => {
       setShowCheck(true);
       playCelebrationChime();
       startConfettiRain();
     }, 620));
-    // heading at 800ms
     timers.push(window.setTimeout(() => setShowHeading(true), 800));
-    // subtext 1020ms
     timers.push(window.setTimeout(() => setShowSub(true), 1020));
-    // order 1220ms
     timers.push(window.setTimeout(() => setShowOrder(true), 1220));
-    // pill 1500ms
     timers.push(window.setTimeout(() => setShowPill(true), 1500));
-    // toast 1700ms
     timers.push(window.setTimeout(() => setShowToast(true), 1700));
-    // done
-    timers.push(window.setTimeout(() => { rainStopRef.current?.(); onDone?.(); }, duration));
+    timers.push(window.setTimeout(() => setShowThanks(true), 1900));
+    timers.push(window.setTimeout(() => setShowBalloons(true), 900));
+    timers.push(window.setTimeout(() => setShowEmojiRain(true), 700));
+    timers.push(window.setTimeout(() => startFireworks(), 1400));
+    timers.push(window.setTimeout(() => { rainStopRef.current?.(); fireworksStopRef.current?.(); onDone?.(); }, duration));
 
     return () => {
       timers.forEach(clearTimeout);
       rainStopRef.current?.();
+      fireworksStopRef.current?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -209,6 +265,15 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
       {/* ambient sparkles */}
       {!reduce && <SparkleLayer />}
 
+      {/* rising balloons */}
+      {!reduce && showBalloons && <BalloonLayer />}
+
+      {/* emoji rain */}
+      {!reduce && showEmojiRain && <EmojiRain />}
+
+      {/* radial burst lines */}
+      {!reduce && showBurstLines && <BurstLines />}
+
       {/* impact flash */}
       <AnimatePresence>
         {phase !== 'drop' && (
@@ -232,6 +297,7 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
         <>
           <Ring color="rgba(250,204,21,0.6)" delay={0} />
           <Ring color="rgba(236,72,153,0.5)" delay={0.15} />
+          <Ring color="rgba(56,189,248,0.45)" delay={0.3} />
         </>
       )}
 
@@ -245,6 +311,27 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
           {showHeading && <LetterHeading text="Order Confirmed!" reduce={!!reduce} />}
         </div>
 
+        {/* Thank you rainbow tagline */}
+        <div className="mt-2 min-h-[28px]">
+          {showThanks && (
+            <motion.p
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 14 }}
+              className="text-lg md:text-2xl font-semibold"
+              style={{
+                background: 'linear-gradient(90deg,#facc15,#f97316,#ec4899,#a855f7,#38bdf8,#4ade80,#facc15)',
+                backgroundSize: '300% 100%',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                animation: 'shimmer 3s linear infinite',
+              }}
+            >
+              🎉 Thank you for your order! 🥳
+            </motion.p>
+          )}
+        </div>
+
         {/* Subtext */}
         <div className="mt-3 min-h-[28px]">
           {showSub && (
@@ -254,7 +341,7 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
               transition={{ duration: 0.5, ease: 'easeOut' }}
               className="text-base md:text-lg text-slate-400"
             >
-              Your parcel is being prepared 📦
+              Your parcel is being prepared 📦✨
             </motion.p>
           )}
         </div>
@@ -272,6 +359,7 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
               className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-sm text-amber-200"
+              style={{ boxShadow: '0 0 24px rgba(250,204,21,0.35)' }}
             >
               <span>📄 Receipt generating</span>
               <DotPulse />
@@ -279,6 +367,7 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
           )}
         </div>
       </div>
+
 
       {/* Bottom toast */}
       <AnimatePresence>
@@ -482,6 +571,105 @@ function SparkleLayer() {
           }}
           animate={{ opacity: [0, 1, 0], scale: [0.6, 1.2, 0.6] }}
           transition={{ duration: s.duration, delay: s.delay, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function BalloonLayer() {
+  const balloons = useMemo(
+    () =>
+      Array.from({ length: 10 }, (_, i) => ({
+        left: 5 + Math.random() * 90,
+        color: ['#f97316', '#ec4899', '#a855f7', '#38bdf8', '#facc15', '#4ade80'][i % 6],
+        size: 28 + Math.random() * 18,
+        delay: Math.random() * 2.5,
+        duration: 6 + Math.random() * 4,
+        sway: 10 + Math.random() * 20,
+      })),
+    []
+  );
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {balloons.map((b, i) => (
+        <motion.div
+          key={i}
+          className="absolute"
+          style={{ left: `${b.left}%`, bottom: -80 }}
+          initial={{ y: 0, x: 0, opacity: 0 }}
+          animate={{ y: -window.innerHeight - 120, x: [0, b.sway, -b.sway, 0], opacity: [0, 1, 1, 0] }}
+          transition={{ duration: b.duration, delay: b.delay, repeat: Infinity, ease: 'easeOut' }}
+        >
+          <div
+            style={{
+              width: b.size,
+              height: b.size * 1.2,
+              background: `radial-gradient(circle at 30% 30%, #fff8, ${b.color} 60%, ${b.color})`,
+              borderRadius: '50%',
+              boxShadow: `0 0 20px ${b.color}88`,
+            }}
+          />
+          <div style={{ width: 1, height: 30, background: 'rgba(255,255,255,0.4)', margin: '0 auto' }} />
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function EmojiRain() {
+  const EMOJIS = ['🎉', '🎊', '✨', '🥳', '📦', '⭐', '💫', '🎈'];
+  const items = useMemo(
+    () =>
+      Array.from({ length: 22 }, (_, i) => ({
+        left: Math.random() * 100,
+        emoji: EMOJIS[i % EMOJIS.length],
+        size: 20 + Math.random() * 22,
+        delay: Math.random() * 4,
+        duration: 5 + Math.random() * 4,
+        rotate: (Math.random() - 0.5) * 720,
+      })),
+    []
+  );
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {items.map((it, i) => (
+        <motion.span
+          key={i}
+          className="absolute"
+          style={{ left: `${it.left}%`, top: -40, fontSize: it.size }}
+          initial={{ y: 0, opacity: 0, rotate: 0 }}
+          animate={{ y: window.innerHeight + 80, opacity: [0, 1, 1, 0], rotate: it.rotate }}
+          transition={{ duration: it.duration, delay: it.delay, repeat: Infinity, ease: 'linear' }}
+        >
+          {it.emoji}
+        </motion.span>
+      ))}
+    </div>
+  );
+}
+
+function BurstLines() {
+  const lines = useMemo(
+    () => Array.from({ length: 14 }, (_, i) => ({ angle: (360 / 14) * i, len: 120 + Math.random() * 80 })),
+    []
+  );
+  return (
+    <div className="pointer-events-none absolute left-1/2 top-[36%] -translate-x-1/2 -translate-y-1/2">
+      {lines.map((l, i) => (
+        <motion.div
+          key={i}
+          className="absolute left-0 top-0 origin-left"
+          style={{
+            width: l.len,
+            height: 3,
+            background: 'linear-gradient(90deg, rgba(250,204,21,0.9), transparent)',
+            transform: `rotate(${l.angle}deg)`,
+            borderRadius: 2,
+          }}
+          initial={{ scaleX: 0, opacity: 0 }}
+          animate={{ scaleX: [0, 1, 1], opacity: [0, 1, 0] }}
+          transition={{ duration: 0.9, ease: 'easeOut' }}
         />
       ))}
     </div>
