@@ -202,45 +202,42 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
   useEffect(() => {
     if (reduce) {
       setPhase('settle');
-      setShowCheck(true); setShowHeading(true); setShowSub(true);
-      setShowOrder(true); setShowPill(true); setShowToast(true);
+      setShowCheck(true); setShowBurstLines(true); setShowHeading(true); setShowThanks(true); setShowSub(true);
+      setShowOrder(true); setShowPill(true); setShowToast(true); setShowBalloons(true); setShowEmojiRain(true);
       const t = setTimeout(() => onDone?.(), duration);
       return () => clearTimeout(t);
     }
 
     const timers: number[] = [];
-    // impact at 520ms
     timers.push(window.setTimeout(() => {
       setPhase('impact');
       setShake(true);
+      setShowBurstLines(true);
       fireImpactConfetti();
       playImpactSound();
       window.setTimeout(() => setShake(false), 320);
     }, 520));
-    // spring back at 560ms
     timers.push(window.setTimeout(() => setPhase('settle'), 560));
-    // checkmark + chime + rain at 620ms
     timers.push(window.setTimeout(() => {
       setShowCheck(true);
       playCelebrationChime();
       startConfettiRain();
     }, 620));
-    // heading at 800ms
     timers.push(window.setTimeout(() => setShowHeading(true), 800));
-    // subtext 1020ms
     timers.push(window.setTimeout(() => setShowSub(true), 1020));
-    // order 1220ms
     timers.push(window.setTimeout(() => setShowOrder(true), 1220));
-    // pill 1500ms
     timers.push(window.setTimeout(() => setShowPill(true), 1500));
-    // toast 1700ms
     timers.push(window.setTimeout(() => setShowToast(true), 1700));
-    // done
-    timers.push(window.setTimeout(() => { rainStopRef.current?.(); onDone?.(); }, duration));
+    timers.push(window.setTimeout(() => setShowThanks(true), 1900));
+    timers.push(window.setTimeout(() => setShowBalloons(true), 900));
+    timers.push(window.setTimeout(() => setShowEmojiRain(true), 700));
+    timers.push(window.setTimeout(() => startFireworks(), 1400));
+    timers.push(window.setTimeout(() => { rainStopRef.current?.(); fireworksStopRef.current?.(); onDone?.(); }, duration));
 
     return () => {
       timers.forEach(clearTimeout);
       rainStopRef.current?.();
+      fireworksStopRef.current?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
