@@ -265,6 +265,15 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
       {/* ambient sparkles */}
       {!reduce && <SparkleLayer />}
 
+      {/* rising balloons */}
+      {!reduce && showBalloons && <BalloonLayer />}
+
+      {/* emoji rain */}
+      {!reduce && showEmojiRain && <EmojiRain />}
+
+      {/* radial burst lines */}
+      {!reduce && showBurstLines && <BurstLines />}
+
       {/* impact flash */}
       <AnimatePresence>
         {phase !== 'drop' && (
@@ -288,6 +297,7 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
         <>
           <Ring color="rgba(250,204,21,0.6)" delay={0} />
           <Ring color="rgba(236,72,153,0.5)" delay={0.15} />
+          <Ring color="rgba(56,189,248,0.45)" delay={0.3} />
         </>
       )}
 
@@ -301,6 +311,27 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
           {showHeading && <LetterHeading text="Order Confirmed!" reduce={!!reduce} />}
         </div>
 
+        {/* Thank you rainbow tagline */}
+        <div className="mt-2 min-h-[28px]">
+          {showThanks && (
+            <motion.p
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 14 }}
+              className="text-lg md:text-2xl font-semibold"
+              style={{
+                background: 'linear-gradient(90deg,#facc15,#f97316,#ec4899,#a855f7,#38bdf8,#4ade80,#facc15)',
+                backgroundSize: '300% 100%',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                animation: 'shimmer 3s linear infinite',
+              }}
+            >
+              🎉 Thank you for your order! 🥳
+            </motion.p>
+          )}
+        </div>
+
         {/* Subtext */}
         <div className="mt-3 min-h-[28px]">
           {showSub && (
@@ -310,7 +341,7 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
               transition={{ duration: 0.5, ease: 'easeOut' }}
               className="text-base md:text-lg text-slate-400"
             >
-              Your parcel is being prepared 📦
+              Your parcel is being prepared 📦✨
             </motion.p>
           )}
         </div>
@@ -328,6 +359,7 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
               className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-sm text-amber-200"
+              style={{ boxShadow: '0 0 24px rgba(250,204,21,0.35)' }}
             >
               <span>📄 Receipt generating</span>
               <DotPulse />
@@ -335,6 +367,7 @@ export function CelebrationOverlay({ orderNumber = 'ORD-8472', onDone, duration 
           )}
         </div>
       </div>
+
 
       {/* Bottom toast */}
       <AnimatePresence>
