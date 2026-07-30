@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,9 +9,11 @@ import { Separator } from '@/components/ui/separator';
 import {
   ArrowLeft, Package, Clock, CheckCircle2, Loader2,
   RefreshCw, Lock, Search, ChevronDown, ChevronUp, Phone, MapPin,
-  User, CreditCard, ShoppingBag, CalendarDays, TrendingUp
+  User, CreditCard, ShoppingBag, CalendarDays, TrendingUp, Bell, BellOff,
+  Rows3, ListCollapse
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { playNewOrderAlert, unlockAudio } from '@/lib/alertSound';
 
 interface OrderItem {
   id: string;
@@ -99,6 +101,11 @@ export default function AdminDashboard() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [orderItems, setOrderItems] = useState<Record<string, OrderItem[]>>({});
   const [loadingItems, setLoadingItems] = useState<string | null>(null);
+  const [expandAll, setExpandAll] = useState(false);
+  const [soundOn, setSoundOn] = useState(() => localStorage.getItem('jagdamba_admin_sound') !== 'off');
+  const knownIdsRef = useRef<Set<string> | null>(null);
+  const soundOnRef = useRef(soundOn);
+  soundOnRef.current = soundOn;
 
   useEffect(() => {
     if (!authenticated || !adminPin) return;
@@ -112,7 +119,26 @@ export default function AdminDashboard() {
     setLoading(true);
     try {
       const data = await callAdmin(adminPin, { action: 'list' });
-      setOrders(data.orders || []);
+      const list: Order[] = data.orders || [];
+
+      // --- New order detection -> sound alert ---
+      if (knownIdsRef.current === null) {
+        knownIdsRef.current = new Set(list.map(o => o.id));
+      } else {
+        const fresh = list.filter(o => !knownIdsRef.current!.has(o.id));
+        if (fresh.length > 0) {
+          fresh.forEach(o => knownIdsRef.current!.add(o.id));
+          if (soundOnRef.current) playNewOrderAlert();
+          toast.success(
+            fresh.length === 1
+              ? `🔔 New order ${fresh[0].order_number} from ${fresh[0].customer_name}`
+              : `🔔 ${fresh.length} new orders received`,
+            { duration: 8000 }
+          );
+        }
+      }
+
+      setOrders(list);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to load orders');
     } finally {
@@ -130,6 +156,28 @@ export default function AdminDashboard() {
       toast.error('Failed to load items');
     } finally {
       setLoadingItems(null);
+    }
+  };
+
+  const toggleExpandAll = async () => {
+    const next = !expandAll;
+    setExpandAll(next);
+    if (next) {
+      setExpandedId(null);
+      for (const o of orders) await fetchOrderItems(o.id);
+    }
+  };
+
+  const toggleSound = async () => {
+    const next = !soundOn;
+    setSoundOn(next);
+    localStorage.setItem('jagdamba_admin_sound', next ? 'on' : 'off');
+    if (next) {
+      await unlockAudio();
+      playNewOrderAlert(1);
+      toast.success('Sound alerts enabled');
+    } else {
+      toast('Sound alerts muted');
     }
   };
 
@@ -159,6 +207,7 @@ export default function AdminDashboard() {
   const handleLogin = async () => {
     try {
       await callAdmin(pin, { action: 'verify_pin' });
+      await unlockAudio();
       setAdminPin(pin);
       setAuthenticated(true);
       sessionStorage.setItem(ADMIN_PIN_KEY, pin);
@@ -262,9 +311,20 @@ export default function AdminDashboard() {
               <p className="text-xs text-muted-foreground">Jagdamba Parcel • Real-time Orders</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchOrders} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} /> Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={soundOn ? 'default' : 'outline'}
+              size="sm"
+              onClick={toggleSound}
+              title={soundOn ? 'Mute new-order sound' : 'Enable new-order sound'}
+            >
+              {soundOn ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+              <span className="hidden sm:inline ml-1">{soundOn ? 'Alerts On' : 'Muted'}</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={fetchOrders} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} /> Refresh
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -371,6 +431,10 @@ export default function AdminDashboard() {
                 {f === 'today' ? '📅 Today' : f}
               </Button>
             ))}
+            <Button variant={expandAll ? 'default' : 'outline'} size="sm" onClick={toggleExpandAll} className="text-xs">
+              {expandAll ? <ListCollapse className="h-3.5 w-3.5 mr-1" /> : <Rows3 className="h-3.5 w-3.5 mr-1" />}
+              {expandAll ? 'Collapse all' : 'Show all details'}
+            </Button>
           </div>
         </div>
 
@@ -397,7 +461,7 @@ export default function AdminDashboard() {
             {filteredOrders.map(order => {
               const statusConf = getStatusConfig(order.order_status);
               const nextStatus = getNextStatus(order.order_status);
-              const isExpanded = expandedId === order.id;
+              const isExpanded = expandAll || expandedId === order.id;
               const items = orderItems[order.id];
 
               return (
