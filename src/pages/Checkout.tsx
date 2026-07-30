@@ -183,9 +183,10 @@ export default function Checkout() {
       navigate(`/order-success/${orderId}`, {
         state: { phone: formData.customerPhone },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Order submission error:', error);
-      toast.error(t('orderFailed', language));
+      const detail = error?.message || error?.error_description || '';
+      toast.error(detail ? `${t('orderFailed', language)} (${detail})` : t('orderFailed', language));
     } finally {
       setIsSubmitting(false);
     }
