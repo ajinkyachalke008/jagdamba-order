@@ -1,0 +1,1 @@
+DELETE FROM public.orders WHERE order_number = 'HJ-TEST-GRANT';
