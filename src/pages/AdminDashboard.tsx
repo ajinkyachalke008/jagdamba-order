@@ -419,6 +419,9 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
+        {/* Menu availability / sold-out control */}
+        <SoldOutManager call={(body) => callAdmin(adminPin, body)} />
+
         {/* Search & Filter */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
