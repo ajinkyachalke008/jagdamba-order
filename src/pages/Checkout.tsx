@@ -21,6 +21,7 @@ export default function Checkout() {
   const { cart, getTotal, clearCart, language, loyaltyPoints, addLoyaltyPoints } = useCart();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasPlacedOrder, setHasPlacedOrder] = useState(false);
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   const [locationLink, setLocationLink] = useState('');
   const [manualLocationLink, setManualLocationLink] = useState('');
@@ -37,10 +38,12 @@ export default function Checkout() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (cart.length === 0) {
+    // Don't bounce home while the success navigation is in flight.
+    if (cart.length === 0 && !hasPlacedOrder && !isSubmitting) {
       navigate('/');
     }
-  }, [cart, navigate]);
+  }, [cart, navigate, hasPlacedOrder, isSubmitting]);
+
 
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
