@@ -6,13 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { t } from '@/lib/translations';
+import { useSoldOut } from '@/hooks/useSoldOut';
 
 export const Menu = () => {
   const { language } = useCart();
+  const { isSoldOut } = useSoldOut();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredItems = menuItems.filter(item => {
+    if (isSoldOut(item.id)) return false;
     const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
     if (!searchQuery.trim()) return matchesCategory;
     
@@ -25,6 +28,7 @@ export const Menu = () => {
     
     return matchesCategory && matchesSearch;
   });
+
 
   return (
     <section id="menu" className="py-20 bg-background">

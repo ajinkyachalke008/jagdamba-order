@@ -31,7 +31,13 @@ serve(async (req) => {
       return json({ error: "Unauthorized" }, 401);
     }
 
-    let body: { action?: string; order_id?: string; status?: string } = {};
+    let body: {
+      action?: string;
+      order_id?: string;
+      status?: string;
+      item_id?: string;
+      sold_out?: boolean;
+    } = {};
     try {
       body = await req.json();
     } catch {
@@ -60,6 +66,14 @@ serve(async (req) => {
       return json({ items: data ?? [] });
     }
 
+    if (action === "all_items") {
+      const { data, error } = await supabase
+        .from("order_items")
+        .select("*");
+      if (error) return json({ error: error.message }, 500);
+      return json({ items: data ?? [] });
+    }
+
     if (action === "update_status") {
       if (!body.order_id || !body.status) {
         return json({ error: "order_id and status required" }, 400);
@@ -72,6 +86,28 @@ serve(async (req) => {
         .from("orders")
         .update({ order_status: body.status })
         .eq("id", body.order_id);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === "availability_list") {
+      const { data, error } = await supabase
+        .from("menu_availability")
+        .select("item_id, sold_out");
+      if (error) return json({ error: error.message }, 500);
+      return json({ availability: data ?? [] });
+    }
+
+    if (action === "set_availability") {
+      if (!body.item_id || typeof body.sold_out !== "boolean") {
+        return json({ error: "item_id and sold_out required" }, 400);
+      }
+      const { error } = await supabase
+        .from("menu_availability")
+        .upsert(
+          { item_id: body.item_id, sold_out: body.sold_out, updated_at: new Date().toISOString() },
+          { onConflict: "item_id" },
+        );
       if (error) return json({ error: error.message }, 500);
       return json({ ok: true });
     }

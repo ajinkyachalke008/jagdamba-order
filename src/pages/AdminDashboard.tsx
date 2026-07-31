@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { playNewOrderAlert, unlockAudio } from '@/lib/alertSound';
+import { SoldOutManager } from '@/components/admin/SoldOutManager';
 
 interface OrderItem {
   id: string;
@@ -110,13 +111,24 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!authenticated || !adminPin) return;
     fetchOrders();
-    // Poll every 15s instead of realtime since anon no longer has SELECT on orders.
-    const interval = setInterval(fetchOrders, 15000);
-    return () => clearInterval(interval);
+
+    // Live updates: customers broadcast on this channel the moment an order lands,
+    // plus a safety poll in case a broadcast is missed.
+    const channel = supabase
+      .channel('orders-feed')
+      .on('broadcast', { event: 'new-order' }, () => fetchOrders())
+      .subscribe();
+
+    const interval = setInterval(fetchOrders, 10000);
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, [authenticated, adminPin]);
 
+
   const fetchOrders = async () => {
-    setLoading(true);
+    if (knownIdsRef.current === null) setLoading(true);
     try {
       const data = await callAdmin(adminPin, { action: 'list' });
       const list: Order[] = data.orders || [];
@@ -407,6 +419,9 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Menu availability / sold-out control */}
+        <SoldOutManager call={(body) => callAdmin(adminPin, body)} />
 
         {/* Search & Filter */}
         <div className="flex flex-col sm:flex-row gap-3">

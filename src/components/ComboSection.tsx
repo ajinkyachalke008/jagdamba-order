@@ -6,10 +6,18 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Check, Sparkles } from 'lucide-react';
 import { t, getName } from '@/lib/translations';
+import { useSoldOut } from '@/hooks/useSoldOut';
 
 export const ComboSection = () => {
   const { addToCart, language } = useCart();
+  const { isSoldOut } = useSoldOut();
   const [addingCombo, setAddingCombo] = useState<string | null>(null);
+
+  // Hide a combo when it is marked sold out, or when any dish inside it is sold out.
+  const availableCombos = comboItems.filter(
+    combo => !isSoldOut(combo.id) && !combo.items.some(id => isSoldOut(id))
+  );
+
 
   const handleAddCombo = (comboId: string) => {
     const combo = comboItems.find(c => c.id === comboId);
@@ -47,7 +55,7 @@ export const ComboSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          {comboItems.map(combo => (
+          {availableCombos.map(combo => (
             <Card
               key={combo.id}
               className="relative overflow-hidden bg-card border-border hover:border-primary hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)] transition-all duration-300 group"
