@@ -110,10 +110,21 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!authenticated || !adminPin) return;
     fetchOrders();
-    // Poll every 15s instead of realtime since anon no longer has SELECT on orders.
-    const interval = setInterval(fetchOrders, 15000);
-    return () => clearInterval(interval);
+
+    // Live updates: customers broadcast on this channel the moment an order lands,
+    // plus a safety poll in case a broadcast is missed.
+    const channel = supabase
+      .channel('orders-feed')
+      .on('broadcast', { event: 'new-order' }, () => fetchOrders())
+      .subscribe();
+
+    const interval = setInterval(fetchOrders, 10000);
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, [authenticated, adminPin]);
+
 
   const fetchOrders = async () => {
     setLoading(true);
