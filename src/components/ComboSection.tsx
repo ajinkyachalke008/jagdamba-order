@@ -55,7 +55,7 @@ export const ComboSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          {comboItems.map(combo => (
+          {availableCombos.map(combo => (
             <Card
               key={combo.id}
               className="relative overflow-hidden bg-card border-border hover:border-primary hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)] transition-all duration-300 group"
