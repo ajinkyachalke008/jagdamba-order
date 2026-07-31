@@ -36,7 +36,15 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const stored = localStorage.getItem('jagdamba_cart');
+      const parsed = stored ? JSON.parse(stored) : [];
+      return Array.isArray(parsed) ? (parsed as CartItem[]) : [];
+    } catch {
+      return [];
+    }
+  });
   const [language, setLanguageState] = useState<Language>('en');
   const [loyaltyPoints, setLoyaltyPoints] = useState<number>(() => {
     const stored = localStorage.getItem('jagdamba_loyalty_points');
@@ -46,6 +54,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     localStorage.setItem('jagdamba_loyalty_points', loyaltyPoints.toString());
   }, [loyaltyPoints]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jagdamba_cart', JSON.stringify(cart));
+    } catch {}
+  }, [cart]);
+
 
   const addToCart = (item: MenuItem) => {
     setCart(prev => {

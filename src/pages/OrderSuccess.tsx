@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Header } from '@/components/Header';
@@ -277,25 +278,38 @@ export default function OrderSuccess() {
       const phone =
         navState.phone ||
         sessionStorage.getItem(`order_phone_${orderId}`) ||
+        localStorage.getItem(`order_phone_${orderId}`) ||
         '';
       if (!phone) throw new Error('Missing phone for order verification');
 
-      const { data, error } = await (supabase as any).rpc(
-        'get_order_for_success',
-        { _order_id: orderId, _phone: phone }
-      );
-      if (error) throw error;
-      if (!data) throw new Error('Order not found');
-      const order = (data as any).order;
-      const items = (data as any).items ?? [];
+      // Small retry: the row may still be replicating right after checkout.
+      let order: any = null;
+      let items: any[] = [];
+      let lastError: any = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { data, error } = await (supabase as any).rpc(
+          'get_order_for_success',
+          { _order_id: orderId, _phone: phone }
+        );
+        if (!error && data && (data as any).order) {
+          order = (data as any).order;
+          items = (data as any).items ?? [];
+          break;
+        }
+        lastError = error || new Error('Order not found');
+        await new Promise(r => setTimeout(r, 700));
+      }
+      if (!order) throw lastError;
       setOrderData({ ...order, items });
     } catch (error) {
       console.error('Error fetching order:', error);
-      navigate('/');
+      toast.error('Could not load your order. Please track it with your phone number.');
+      navigate('/track-order');
     } finally {
       setLoading(false);
     }
   };
+
 
   // WebGL cloth simulation
   useEffect(() => {
