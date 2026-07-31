@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      menu_availability: {
+        Row: {
+          created_at: string
+          item_id: string
+          sold_out: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          item_id: string
+          sold_out?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          item_id?: string
+          sold_out?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           id: string
