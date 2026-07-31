@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { playNewOrderAlert, unlockAudio } from '@/lib/alertSound';
+import { SoldOutManager } from '@/components/admin/SoldOutManager';
 
 interface OrderItem {
   id: string;
