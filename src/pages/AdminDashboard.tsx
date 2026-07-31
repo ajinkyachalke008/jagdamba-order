@@ -127,7 +127,7 @@ export default function AdminDashboard() {
 
 
   const fetchOrders = async () => {
-    setLoading(true);
+    if (knownIdsRef.current === null) setLoading(true);
     try {
       const data = await callAdmin(adminPin, { action: 'list' });
       const list: Order[] = data.orders || [];
