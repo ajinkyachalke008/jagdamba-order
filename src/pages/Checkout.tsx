@@ -99,7 +99,14 @@ export default function Checkout() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    if (isSubmitting || hasPlacedOrder) return;
+
+    if (cart.length === 0) {
+      toast.error(t('orderFailed', language));
+      return;
+    }
+
     if (!validateForm()) {
       toast.error(t('fixErrors', language));
       return;
@@ -112,6 +119,7 @@ export default function Checkout() {
       const orderNumber = generateOrderNumber();
       const total = getTotal();
       const customerName = formData.customerName.trim();
+      const itemsSnapshot = cart.map(item => ({ ...item }));
       const deliveryAddress = formData.deliveryMethod === 'home_delivery'
         ? (locationLink ? `${formData.deliveryAddress.trim()} | Location: ${locationLink}` : formData.deliveryAddress.trim())
         : (locationLink ? `Pickup | Location: ${locationLink}` : null);
@@ -133,7 +141,7 @@ export default function Checkout() {
 
       if (orderError) throw orderError;
 
-      const orderItems = cart.map(item => ({
+      const orderItems = itemsSnapshot.map(item => ({
         order_id: orderId,
         item_name_en: item.nameEn,
         item_name_mr: item.nameMr,
@@ -148,19 +156,34 @@ export default function Checkout() {
 
       if (itemsError) throw itemsError;
 
-      // Tell any open admin dashboard about the new order instantly.
+      // Order is safely stored — remember the phone before anything else can fail.
       try {
-        const ch = supabase.channel('orders-feed');
-        await ch.subscribe();
-        await ch.send({ type: 'broadcast', event: 'new-order', payload: { orderNumber } });
-        setTimeout(() => supabase.removeChannel(ch), 2000);
-      } catch (e) {
-        console.error('Failed to broadcast new order:', e);
-      }
+        sessionStorage.setItem(`order_phone_${orderId}`, formData.customerPhone);
+        localStorage.setItem(`order_phone_${orderId}`, formData.customerPhone);
+      } catch {}
 
+      setHasPlacedOrder(true);
+      addLoyaltyPoints(total);
+      clearCart();
+      toast.success(t('orderPlaced', language));
+      navigate(`/order-success/${orderId}`, {
+        state: { phone: formData.customerPhone },
+      });
 
-      try {
-        const { error: notificationError } = await supabase.functions.invoke('send-telegram-notification', {
+      // Fire-and-forget side effects: they must never block or fail the order.
+      void (async () => {
+        try {
+          const ch = supabase.channel('orders-feed');
+          await ch.subscribe();
+          await ch.send({ type: 'broadcast', event: 'new-order', payload: { orderNumber } });
+          setTimeout(() => supabase.removeChannel(ch), 2000);
+        } catch (err) {
+          console.error('Failed to broadcast new order:', err);
+        }
+      })();
+
+      void supabase.functions
+        .invoke('send-telegram-notification', {
           body: {
             orderNumber,
             customerName,
@@ -169,7 +192,7 @@ export default function Checkout() {
             deliveryAddress: deliveryAddress || undefined,
             locationLink: locationLink || undefined,
             paymentMethod: formData.paymentMethod,
-            items: cart.map(item => ({
+            items: itemsSnapshot.map(item => ({
               nameEn: item.nameEn,
               nameMr: item.nameMr,
               quantity: item.quantity,
@@ -179,24 +202,12 @@ export default function Checkout() {
             gst: 0,
             total,
           },
-        });
+        })
+        .then(({ error }) => {
+          if (error) console.error('Telegram notification returned an error:', error);
+        })
+        .catch(err => console.error('Failed to send Telegram notification:', err));
 
-        if (notificationError) {
-          console.error('Telegram notification returned an error:', notificationError);
-        }
-      } catch (notifError) {
-        console.error('Failed to send Telegram notification:', notifError);
-      }
-
-      addLoyaltyPoints(total);
-      clearCart();
-      toast.success(t('orderPlaced', language));
-      try {
-        sessionStorage.setItem(`order_phone_${orderId}`, formData.customerPhone);
-      } catch {}
-      navigate(`/order-success/${orderId}`, {
-        state: { phone: formData.customerPhone },
-      });
     } catch (error: any) {
       console.error('Order submission error:', error);
       const detail = error?.message || error?.error_description || '';
