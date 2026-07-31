@@ -145,6 +145,17 @@ export default function Checkout() {
 
       if (itemsError) throw itemsError;
 
+      // Tell any open admin dashboard about the new order instantly.
+      try {
+        const ch = supabase.channel('orders-feed');
+        await ch.subscribe();
+        await ch.send({ type: 'broadcast', event: 'new-order', payload: { orderNumber } });
+        setTimeout(() => supabase.removeChannel(ch), 2000);
+      } catch (e) {
+        console.error('Failed to broadcast new order:', e);
+      }
+
+
       try {
         const { error: notificationError } = await supabase.functions.invoke('send-telegram-notification', {
           body: {
