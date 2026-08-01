@@ -390,7 +390,7 @@ function StampSeal({ phase, showCheck, reduce }: { phase: 'drop' | 'impact' | 's
 function Ring({ color, delay }: { color: string; delay: number }) {
   return (
     <motion.div
-      className="pointer-events-none absolute left-1/2 top-[34%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+      className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
       style={{ width: 120, height: 120, border: `2px solid ${color}` }}
       initial={{ scale: 0.25, opacity: 0.9 }}
       animate={{ scale: 3.2, opacity: 0 }}
@@ -400,26 +400,37 @@ function Ring({ color, delay }: { color: string; delay: number }) {
 }
 
 function LetterHeading({ text, reduce }: { text: string; reduce: boolean }) {
-  const chars = text.split('');
+  // Split into words so long names wrap cleanly instead of breaking mid-word.
+  const words = text.split(' ');
+  let charIndex = 0;
   return (
     <h1
-      className="text-3xl md:text-5xl font-bold text-white tracking-tight"
+      className="mx-auto max-w-full text-balance text-3xl md:text-5xl font-bold leading-tight text-white tracking-tight"
       style={{ textShadow: '0 0 28px rgba(250,204,21,0.4)' }}
     >
-      {chars.map((c, i) => (
-        <motion.span
-          key={i}
-          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={reduce ? { duration: 0.25 } : { type: 'spring', stiffness: 520, damping: 20, delay: i * 0.022 }}
-          style={{ display: 'inline-block', whiteSpace: 'pre' }}
-        >
-          {c}
-        </motion.span>
+      {words.map((word, w) => (
+        <span key={w} className="inline-block whitespace-nowrap">
+          {word.split('').map((c) => {
+            const i = charIndex++;
+            return (
+              <motion.span
+                key={i}
+                initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduce ? { duration: 0.25 } : { type: 'spring', stiffness: 520, damping: 20, delay: i * 0.022 }}
+                style={{ display: 'inline-block' }}
+              >
+                {c}
+              </motion.span>
+            );
+          })}
+          {w < words.length - 1 && <span>{'\u00A0'}</span>}
+        </span>
       ))}
     </h1>
   );
 }
+
 
 function SummaryChip({ label, accent }: { label: string; accent?: boolean }) {
   return (
