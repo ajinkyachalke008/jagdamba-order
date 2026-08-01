@@ -92,7 +92,7 @@ export function CelebrationOverlay({
       particleCount: 60,
       spread: 360,
       startVelocity: 42,
-      origin: { x: 0.5, y: 0.42 },
+      origin: { x: 0.5, y: 0.38 },
       colors: [...CONFETTI_COLORS, ...ACCENT],
       scalar: 1.05,
       ticks: 240,
