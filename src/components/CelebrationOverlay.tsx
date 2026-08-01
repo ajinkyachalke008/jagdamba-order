@@ -592,30 +592,42 @@ function SparkleLayer() {
 }
 
 function BurstLines() {
+  // Deterministic lengths (no re-randomising between renders) scaled to the seal size.
   const lines = useMemo(
-    () => Array.from({ length: 14 }, (_, i) => ({ angle: (360 / 14) * i, len: 120 + Math.random() * 80 })),
+    () =>
+      Array.from({ length: 14 }, (_, i) => ({
+        angle: (360 / 14) * i,
+        factor: i % 2 === 0 ? 1.45 : 1.1,
+      })),
     []
   );
   return (
-    <div className="pointer-events-none absolute left-1/2 top-1/2 h-0 w-0 -translate-x-1/2 -translate-y-1/2">
+    <div className="pointer-events-none absolute left-1/2 top-1/2 h-0 w-0" style={{ transform: 'translate(-50%, -50%)' }}>
       {lines.map((l, i) => (
-        <motion.div
+        // Rotation lives on the wrapper so framer's scaleX transform can't override it.
+        <div
           key={i}
           className="absolute left-0 top-0 origin-left"
-          style={{
-            width: l.len,
-            height: 2,
-            marginTop: -1,
-            background: 'linear-gradient(90deg, rgba(250,204,21,0.9), transparent)',
-            transform: `rotate(${l.angle}deg)`,
-            borderRadius: 2,
-          }}
-          initial={{ scaleX: 0, opacity: 0 }}
-          animate={{ scaleX: [0, 1, 1], opacity: [0, 1, 0] }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
+          style={{ transform: `rotate(${l.angle}deg)` }}
+        >
+          <motion.div
+            style={{
+              width: `calc(var(--seal) * ${l.factor})`,
+              height: 2,
+              marginTop: -1,
+              background: 'linear-gradient(90deg, rgba(250,204,21,0.9), transparent)',
+              borderRadius: 2,
+              transformOrigin: 'left center',
+              willChange: 'transform, opacity',
+            }}
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: [0, 1, 1], opacity: [0, 1, 0] }}
+            transition={{ duration: 0.85, ease: 'easeOut' }}
+          />
+        </div>
       ))}
     </div>
+
   );
 
 }
