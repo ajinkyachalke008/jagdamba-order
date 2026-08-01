@@ -561,18 +561,19 @@ function DotPulse() {
   );
 }
 
-function SparkleLayer() {
+function SparkleLayer({ count = 16 }: { count?: number }) {
   const sparkles = useMemo(
     () =>
-      Array.from({ length: 18 }, () => ({
+      Array.from({ length: count }, () => ({
         left: Math.random() * 100,
         top: Math.random() * 70,
         size: 1.5 + Math.random() * 2,
         delay: Math.random() * 3,
         duration: 1.6 + Math.random() * 2,
       })),
-    []
+    [count]
   );
+
   return (
     <div className="pointer-events-none absolute inset-0">
       {sparkles.map((s, i) => (
