@@ -221,7 +221,7 @@ export function CelebrationOverlay({
       transition={reduce ? { duration: 0.3 } : { duration: 0.26 }}
     >
       {/* ambient sparkles — subtle */}
-      {!reduce && <SparkleLayer />}
+      {!reduce && <SparkleLayer count={lowPower ? 8 : 16} />}
 
       {/* Center content */}
       <div
