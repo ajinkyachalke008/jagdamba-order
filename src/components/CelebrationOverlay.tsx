@@ -86,37 +86,59 @@ export function CelebrationOverlay({
   const CONFETTI_COLORS = ['#facc15', '#f59e0b', '#fbbf24', '#fde68a', '#ffffff'];
   const ACCENT = ['#f97316', '#fb923c'];
 
+  // Low-power detection: fewer particles / no rain so slower devices stay smooth.
+  const lowPower = useMemo(() => {
+    if (typeof navigator === 'undefined') return false;
+    const cores = (navigator as any).hardwareConcurrency ?? 8;
+    const mem = (navigator as any).deviceMemory ?? 8;
+    return cores <= 4 || mem <= 4;
+  }, []);
+
+  // Confetti fires from the actual seal centre so bursts stay aligned on every breakpoint.
+  const sealAnchorRef = useRef<HTMLDivElement | null>(null);
+  const sealOrigin = () => {
+    const el = sealAnchorRef.current;
+    if (!el) return { x: 0.5, y: 0.38 };
+    const r = el.getBoundingClientRect();
+    return {
+      x: (r.left + r.width / 2) / window.innerWidth,
+      y: (r.top + r.height / 2) / window.innerHeight,
+    };
+  };
+
   const fireImpactConfetti = () => {
     if (reduce) return;
     confetti({
-      particleCount: 60,
+      particleCount: lowPower ? 32 : 60,
       spread: 360,
       startVelocity: 42,
-      origin: { x: 0.5, y: 0.38 },
+      origin: sealOrigin(),
       colors: [...CONFETTI_COLORS, ...ACCENT],
       scalar: 1.05,
-      ticks: 240,
+      ticks: 220,
+      disableForReducedMotion: true,
       shapes: ['square', 'circle'],
     });
-    const end = Date.now() + 600;
+    if (lowPower) return;
+    const end = Date.now() + 520;
     const cannons = () => {
-      confetti({ particleCount: 5, angle: 60, spread: 50, origin: { x: 0, y: 1 }, colors: CONFETTI_COLORS });
-      confetti({ particleCount: 5, angle: 120, spread: 50, origin: { x: 1, y: 1 }, colors: CONFETTI_COLORS });
-      if (Date.now() < end) setTimeout(cannons, 80);
+      confetti({ particleCount: 4, angle: 60, spread: 50, origin: { x: 0, y: 1 }, colors: CONFETTI_COLORS, ticks: 200 });
+      confetti({ particleCount: 4, angle: 120, spread: 50, origin: { x: 1, y: 1 }, colors: CONFETTI_COLORS, ticks: 200 });
+      if (Date.now() < end) setTimeout(cannons, 110);
     };
     cannons();
   };
 
   const startConfettiRain = () => {
-    if (reduce) return;
+    if (reduce || lowPower) return;
     let raf = 0; let stopped = false;
     const start = Date.now();
     const tick = () => {
       if (stopped) return;
       const elapsed = Date.now() - start;
-      if (elapsed > 2200) return; // brief, refined rain
+      if (elapsed > 1800) return; // brief, refined rain
       confetti({
-        particleCount: 3,
+        particleCount: 2,
         angle: 270,
         spread: 90,
         startVelocity: 20,
@@ -125,14 +147,16 @@ export function CelebrationOverlay({
         origin: { x: Math.random(), y: -0.05 },
         colors: [...CONFETTI_COLORS, ...ACCENT],
         scalar: 0.9,
-        ticks: 260,
+        ticks: 220,
+        disableForReducedMotion: true,
         shapes: ['square', 'circle'],
       });
-      raf = window.setTimeout(tick, 130) as unknown as number;
+      raf = window.setTimeout(tick, 150) as unknown as number;
     };
     tick();
     rainStopRef.current = () => { stopped = true; clearTimeout(raf); };
   };
+
 
   // ---------- TIMELINE (tightened) ----------
   useEffect(() => {
