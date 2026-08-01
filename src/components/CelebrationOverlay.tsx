@@ -551,7 +551,7 @@ function BurstLines() {
     []
   );
   return (
-    <div className="pointer-events-none absolute left-1/2 top-[34%] -translate-x-1/2 -translate-y-1/2">
+    <div className="pointer-events-none absolute left-1/2 top-1/2 h-0 w-0 -translate-x-1/2 -translate-y-1/2">
       {lines.map((l, i) => (
         <motion.div
           key={i}
@@ -559,6 +559,7 @@ function BurstLines() {
           style={{
             width: l.len,
             height: 2,
+            marginTop: -1,
             background: 'linear-gradient(90deg, rgba(250,204,21,0.9), transparent)',
             transform: `rotate(${l.angle}deg)`,
             borderRadius: 2,
@@ -570,6 +571,7 @@ function BurstLines() {
       ))}
     </div>
   );
+
 }
 
 export default CelebrationOverlay;
