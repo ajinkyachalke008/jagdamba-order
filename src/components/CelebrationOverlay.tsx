@@ -397,14 +397,15 @@ function StampSeal({ phase, showCheck, reduce }: { phase: 'drop' | 'impact' | 's
 
   return (
     <motion.div
-      initial={reduce ? { opacity: 0 } : { y: -260, scaleX: 1, scaleY: 1 }}
+      initial={reduce ? { opacity: 0 } : { y: '-260%', scaleX: 1, scaleY: 1 }}
       animate={animate}
       transition={transition}
-      className="relative"
+      className="relative h-full w-full"
       style={{
-        width: 96, height: 96, borderRadius: '50%',
+        borderRadius: '50%',
         background: 'linear-gradient(145deg,#fde68a,#f59e0b)',
         boxShadow: '0 18px 40px -8px rgba(245,158,11,0.55), 0 0 0 4px rgba(255,255,255,0.06) inset',
+        willChange: 'transform',
       }}
     >
       <svg viewBox="0 0 64 64" className="absolute inset-0 h-full w-full">
@@ -425,16 +426,19 @@ function StampSeal({ phase, showCheck, reduce }: { phase: 'drop' | 'impact' | 's
 }
 
 function Ring({ color, delay }: { color: string; delay: number }) {
+  // Fills the seal anchor exactly, so scaling keeps it perfectly concentric
+  // (no translate classes that framer's transform would override).
   return (
     <motion.div
-      className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-      style={{ width: 120, height: 120, border: `2px solid ${color}` }}
-      initial={{ scale: 0.25, opacity: 0.9 }}
+      className="pointer-events-none absolute inset-0 rounded-full"
+      style={{ border: `2px solid ${color}`, willChange: 'transform, opacity' }}
+      initial={{ scale: 0.3, opacity: 0.9 }}
       animate={{ scale: 3.2, opacity: 0 }}
       transition={{ duration: 0.85, ease: 'easeOut', delay }}
     />
   );
 }
+
 
 function LetterHeading({ text, reduce }: { text: string; reduce: boolean }) {
   // Split into words so long names wrap cleanly instead of breaking mid-word.
