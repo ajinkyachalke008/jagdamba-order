@@ -536,7 +536,7 @@ function OrderNumber({ value, reduce }: { value: string; reduce: boolean }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="font-mono text-amber-300/90 tracking-wider text-sm"
+      className="max-w-full break-all font-mono text-[clamp(0.72rem,2.6vw,0.875rem)] tracking-wider text-amber-300/90"
     >
       {display.join('')}
     </motion.p>
