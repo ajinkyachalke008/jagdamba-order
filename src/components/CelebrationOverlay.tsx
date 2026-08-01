@@ -446,9 +446,14 @@ function LetterHeading({ text, reduce }: { text: string; reduce: boolean }) {
   let charIndex = 0;
   return (
     <h1
-      className="mx-auto max-w-full text-balance text-3xl md:text-5xl font-bold leading-tight text-white tracking-tight"
-      style={{ textShadow: '0 0 28px rgba(250,204,21,0.4)' }}
+      className="mx-auto w-full max-w-full text-balance font-bold leading-[1.15] tracking-tight text-white"
+      style={{
+        textShadow: '0 0 28px rgba(250,204,21,0.4)',
+        fontSize: 'clamp(1.6rem, 6.4vw, 3rem)',
+        overflowWrap: 'anywhere',
+      }}
     >
+
       {words.map((word, w) => (
         <span key={w} className="inline-block whitespace-nowrap">
           {word.split('').map((c) => {
