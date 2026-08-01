@@ -224,108 +224,121 @@ export function CelebrationOverlay({
       {!reduce && <SparkleLayer />}
 
       {/* Center content */}
-      <div className="relative z-10 mx-auto flex h-full w-full max-w-md flex-col items-center justify-center gap-0 px-6 text-center">
-        {/* Seal + all radial FX share one perfectly centered anchor */}
-        <div className="relative flex h-[120px] w-[120px] items-center justify-center">
-          {/* impact flash */}
-          <AnimatePresence>
-            {phase !== 'drop' && !reduce && (
-              <motion.div
-                key="flash"
-                className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                initial={{ opacity: 0, scale: 0.6 }}
-                animate={{ opacity: [0, 0.85, 0], scale: [0.6, 1.4, 1.8] }}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
-                style={{
-                  width: 420, height: 420, borderRadius: '50%',
-                  background: 'radial-gradient(circle, rgba(250,204,21,0.32) 0%, transparent 65%)',
-                  filter: 'blur(8px)',
-                }}
-              />
+      <div
+        className="relative z-10 mx-auto flex h-full w-full flex-col items-center justify-center px-5 text-center sm:px-8"
+        style={{ ['--seal' as any]: 'clamp(76px, 18vw, 112px)' }}
+      >
+        <div className="flex w-full max-w-[min(92vw,34rem)] flex-col items-center gap-[clamp(0.75rem,2.2vw,1.25rem)]">
+          {/* Seal + all radial FX share one perfectly centered anchor */}
+          <div
+            ref={sealAnchorRef}
+            className="relative flex items-center justify-center"
+            style={{ width: 'var(--seal)', height: 'var(--seal)', transform: 'translateZ(0)' }}
+          >
+            {/* impact flash */}
+            <AnimatePresence>
+              {phase !== 'drop' && !reduce && (
+                <motion.div
+                  key="flash"
+                  className="pointer-events-none absolute left-1/2 top-1/2 rounded-full"
+                  initial={{ opacity: 0, scale: 0.6, x: '-50%', y: '-50%' }}
+                  animate={{ opacity: [0, 0.85, 0], scale: [0.6, 1.4, 1.8], x: '-50%', y: '-50%' }}
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                  style={{
+                    width: 'calc(var(--seal) * 3.6)',
+                    height: 'calc(var(--seal) * 3.6)',
+                    background: 'radial-gradient(circle, rgba(250,204,21,0.32) 0%, transparent 65%)',
+                    filter: 'blur(8px)',
+                    willChange: 'transform, opacity',
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            {/* radial burst lines on impact — same trigger + duration as rings */}
+            {!reduce && showBurstLines && <BurstLines />}
+
+            {/* expanding rings — concentric with the seal */}
+            {!reduce && phase !== 'drop' && (
+              <>
+                <Ring color="rgba(250,204,21,0.65)" delay={0} />
+                <Ring color="rgba(251,146,60,0.45)" delay={0.1} />
+                <Ring color="rgba(255,255,255,0.25)" delay={0.2} />
+              </>
             )}
-          </AnimatePresence>
 
-          {/* radial burst lines on impact */}
-          {!reduce && showBurstLines && <BurstLines />}
+            <StampSeal phase={phase} showCheck={showCheck} reduce={!!reduce} />
+          </div>
 
-          {/* expanding rings — concentric with the seal */}
-          {!reduce && phase !== 'drop' && (
-            <>
-              <Ring color="rgba(250,204,21,0.65)" delay={0} />
-              <Ring color="rgba(251,146,60,0.45)" delay={0.12} />
-              <Ring color="rgba(255,255,255,0.25)" delay={0.24} />
-            </>
-          )}
+          {/* Heading — personalized */}
+          <div className="mt-[clamp(0.75rem,3vw,1.5rem)] flex min-h-[2.6em] w-full items-center justify-center">
+            {showHeading && <LetterHeading text={headingText} reduce={!!reduce} />}
+          </div>
 
-          <StampSeal phase={phase} showCheck={showCheck} reduce={!!reduce} />
-        </div>
+          {/* Subtext — gold gradient, no emoji */}
+          <div className="flex min-h-[1.6em] w-full items-center justify-center">
+            {showSub && (
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+                className="font-medium tracking-wide"
+                style={{
+                  fontSize: 'clamp(0.95rem, 2.6vw, 1.15rem)',
+                  background: 'linear-gradient(90deg,#fde68a,#facc15,#fbbf24,#fde68a)',
+                  backgroundSize: '200% 100%',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  animation: 'shimmer 4s linear infinite',
+                }}
+              >
+                Your order is confirmed
+              </motion.p>
+            )}
+          </div>
 
-        {/* Heading — personalized */}
-        <div className="mt-8 flex min-h-[52px] w-full items-center justify-center">
-          {showHeading && <LetterHeading text={headingText} reduce={!!reduce} />}
-        </div>
+          {/* Order summary chips — dish count + total */}
+          <div className="flex min-h-[2.4em] w-full items-center justify-center">
+            {showSummary && (itemCount != null || totalAmount != null) && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+                className="flex w-full flex-wrap items-center justify-center gap-2"
+              >
+                {itemCount != null && (
+                  <SummaryChip label={`${itemCount} ${itemCount === 1 ? 'dish' : 'dishes'}`} />
+                )}
+                {totalAmount != null && (
+                  <SummaryChip label={`₹${totalAmount.toFixed(2)}`} accent />
+                )}
+              </motion.div>
+            )}
+          </div>
 
-        {/* Subtext — gold gradient, no emoji */}
-        <div className="mt-2 flex min-h-[28px] w-full items-center justify-center">
-          {showSub && (
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, ease: 'easeOut' }}
-              className="text-base md:text-lg font-medium tracking-wide"
-              style={{
-                background: 'linear-gradient(90deg,#fde68a,#facc15,#fbbf24,#fde68a)',
-                backgroundSize: '200% 100%',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                animation: 'shimmer 4s linear infinite',
-              }}
-            >
-              Your order is confirmed
-            </motion.p>
-          )}
-        </div>
+          {/* Order number scramble */}
+          <div className="flex min-h-[1.5em] w-full items-center justify-center px-2">
+            {showOrder && <OrderNumber value={`Order #${orderNumber}`} reduce={!!reduce} />}
+          </div>
 
-        {/* Order summary chips — dish count + total */}
-        <div className="mt-4 flex min-h-[38px] w-full items-center justify-center">
-          {showSummary && (itemCount != null || totalAmount != null) && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex flex-wrap items-center justify-center gap-2"
-            >
-              {itemCount != null && (
-                <SummaryChip label={`${itemCount} ${itemCount === 1 ? 'dish' : 'dishes'}`} />
-              )}
-              {totalAmount != null && (
-                <SummaryChip label={`₹${totalAmount.toFixed(2)}`} accent />
-              )}
-            </motion.div>
-          )}
-        </div>
-
-        {/* Order number scramble */}
-        <div className="mt-3 flex min-h-[24px] w-full items-center justify-center">
-          {showOrder && <OrderNumber value={`Order #${orderNumber}`} reduce={!!reduce} />}
-        </div>
-
-        {/* Pill */}
-        <div className="mt-5 flex min-h-[44px] w-full items-center justify-center">
-          {showPill && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35 }}
-              className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-sm text-amber-200"
-              style={{ boxShadow: '0 0 24px rgba(250,204,21,0.3)' }}
-            >
-              <span>Preparing your receipt</span>
-              <DotPulse />
-            </motion.div>
-          )}
+          {/* Pill */}
+          <div className="mt-[clamp(0.25rem,1.5vw,0.75rem)] flex min-h-[2.75rem] w-full items-center justify-center">
+            {showPill && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="inline-flex max-w-full items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-[clamp(0.8rem,2.2vw,0.9rem)] text-amber-200"
+                style={{ boxShadow: '0 0 24px rgba(250,204,21,0.3)' }}
+              >
+                <span className="whitespace-nowrap">Preparing your receipt</span>
+                <DotPulse />
+              </motion.div>
+            )}
+          </div>
         </div>
       </div>
+
 
 
       {/* Bottom toast */}
