@@ -346,12 +346,13 @@ export function CelebrationOverlay({
         {showToast && (
           <motion.div
             key="toast"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 20, x: '-50%' }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="absolute left-1/2 z-20 w-[min(92vw,420px)] -translate-x-1/2 overflow-hidden rounded-xl bg-white/95 shadow-2xl backdrop-blur"
+            className="absolute left-1/2 z-20 w-[min(92vw,420px)] overflow-hidden rounded-xl bg-white/95 shadow-2xl backdrop-blur"
             style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+
 
           >
             <div className="flex items-center gap-3 px-4 py-3">
