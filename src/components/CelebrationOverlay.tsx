@@ -199,47 +199,50 @@ export function CelebrationOverlay({
       {/* ambient sparkles — subtle */}
       {!reduce && <SparkleLayer />}
 
-      {/* radial burst lines on impact */}
-      {!reduce && showBurstLines && <BurstLines />}
-
-      {/* impact flash */}
-      <AnimatePresence>
-        {phase !== 'drop' && (
-          <motion.div
-            key="flash"
-            className="pointer-events-none absolute left-1/2 top-[34%] -translate-x-1/2 -translate-y-1/2"
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: [0, 0.85, 0], scale: [0.6, 1.4, 1.8] }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            style={{
-              width: 520, height: 520, borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(250,204,21,0.32) 0%, transparent 65%)',
-              filter: 'blur(8px)',
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* expanding rings — gold-forward */}
-      {!reduce && phase !== 'drop' && (
-        <>
-          <Ring color="rgba(250,204,21,0.65)" delay={0} />
-          <Ring color="rgba(251,146,60,0.45)" delay={0.12} />
-          <Ring color="rgba(255,255,255,0.25)" delay={0.24} />
-        </>
-      )}
-
       {/* Center content */}
-      <div className="relative z-10 flex h-full w-full flex-col items-center justify-center px-6 text-center">
-        <StampSeal phase={phase} showCheck={showCheck} reduce={!!reduce} />
+      <div className="relative z-10 mx-auto flex h-full w-full max-w-md flex-col items-center justify-center gap-0 px-6 text-center">
+        {/* Seal + all radial FX share one perfectly centered anchor */}
+        <div className="relative flex h-[120px] w-[120px] items-center justify-center">
+          {/* impact flash */}
+          <AnimatePresence>
+            {phase !== 'drop' && !reduce && (
+              <motion.div
+                key="flash"
+                className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: [0, 0.85, 0], scale: [0.6, 1.4, 1.8] }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+                style={{
+                  width: 420, height: 420, borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(250,204,21,0.32) 0%, transparent 65%)',
+                  filter: 'blur(8px)',
+                }}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* radial burst lines on impact */}
+          {!reduce && showBurstLines && <BurstLines />}
+
+          {/* expanding rings — concentric with the seal */}
+          {!reduce && phase !== 'drop' && (
+            <>
+              <Ring color="rgba(250,204,21,0.65)" delay={0} />
+              <Ring color="rgba(251,146,60,0.45)" delay={0.12} />
+              <Ring color="rgba(255,255,255,0.25)" delay={0.24} />
+            </>
+          )}
+
+          <StampSeal phase={phase} showCheck={showCheck} reduce={!!reduce} />
+        </div>
 
         {/* Heading — personalized */}
-        <div className="mt-8 min-h-[48px]">
+        <div className="mt-8 flex min-h-[52px] w-full items-center justify-center">
           {showHeading && <LetterHeading text={headingText} reduce={!!reduce} />}
         </div>
 
         {/* Subtext — gold gradient, no emoji */}
-        <div className="mt-2 min-h-[28px]">
+        <div className="mt-2 flex min-h-[28px] w-full items-center justify-center">
           {showSub && (
             <motion.p
               initial={{ opacity: 0, y: 8 }}
@@ -260,13 +263,13 @@ export function CelebrationOverlay({
         </div>
 
         {/* Order summary chips — dish count + total */}
-        <div className="mt-4 min-h-[36px]">
+        <div className="mt-4 flex min-h-[38px] w-full items-center justify-center">
           {showSummary && (itemCount != null || totalAmount != null) && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="flex items-center justify-center gap-2 flex-wrap"
+              className="flex flex-wrap items-center justify-center gap-2"
             >
               {itemCount != null && (
                 <SummaryChip label={`${itemCount} ${itemCount === 1 ? 'dish' : 'dishes'}`} />
@@ -279,12 +282,12 @@ export function CelebrationOverlay({
         </div>
 
         {/* Order number scramble */}
-        <div className="mt-3 min-h-[24px]">
+        <div className="mt-3 flex min-h-[24px] w-full items-center justify-center">
           {showOrder && <OrderNumber value={`Order #${orderNumber}`} reduce={!!reduce} />}
         </div>
 
         {/* Pill */}
-        <div className="mt-5 min-h-[40px]">
+        <div className="mt-5 flex min-h-[44px] w-full items-center justify-center">
           {showPill && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
@@ -299,6 +302,7 @@ export function CelebrationOverlay({
           )}
         </div>
       </div>
+
 
       {/* Bottom toast */}
       <AnimatePresence>
