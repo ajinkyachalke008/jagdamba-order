@@ -86,37 +86,59 @@ export function CelebrationOverlay({
   const CONFETTI_COLORS = ['#facc15', '#f59e0b', '#fbbf24', '#fde68a', '#ffffff'];
   const ACCENT = ['#f97316', '#fb923c'];
 
+  // Low-power detection: fewer particles / no rain so slower devices stay smooth.
+  const lowPower = useMemo(() => {
+    if (typeof navigator === 'undefined') return false;
+    const cores = (navigator as any).hardwareConcurrency ?? 8;
+    const mem = (navigator as any).deviceMemory ?? 8;
+    return cores <= 4 || mem <= 4;
+  }, []);
+
+  // Confetti fires from the actual seal centre so bursts stay aligned on every breakpoint.
+  const sealAnchorRef = useRef<HTMLDivElement | null>(null);
+  const sealOrigin = () => {
+    const el = sealAnchorRef.current;
+    if (!el) return { x: 0.5, y: 0.38 };
+    const r = el.getBoundingClientRect();
+    return {
+      x: (r.left + r.width / 2) / window.innerWidth,
+      y: (r.top + r.height / 2) / window.innerHeight,
+    };
+  };
+
   const fireImpactConfetti = () => {
     if (reduce) return;
     confetti({
-      particleCount: 60,
+      particleCount: lowPower ? 32 : 60,
       spread: 360,
       startVelocity: 42,
-      origin: { x: 0.5, y: 0.38 },
+      origin: sealOrigin(),
       colors: [...CONFETTI_COLORS, ...ACCENT],
       scalar: 1.05,
-      ticks: 240,
+      ticks: 220,
+      disableForReducedMotion: true,
       shapes: ['square', 'circle'],
     });
-    const end = Date.now() + 600;
+    if (lowPower) return;
+    const end = Date.now() + 520;
     const cannons = () => {
-      confetti({ particleCount: 5, angle: 60, spread: 50, origin: { x: 0, y: 1 }, colors: CONFETTI_COLORS });
-      confetti({ particleCount: 5, angle: 120, spread: 50, origin: { x: 1, y: 1 }, colors: CONFETTI_COLORS });
-      if (Date.now() < end) setTimeout(cannons, 80);
+      confetti({ particleCount: 4, angle: 60, spread: 50, origin: { x: 0, y: 1 }, colors: CONFETTI_COLORS, ticks: 200 });
+      confetti({ particleCount: 4, angle: 120, spread: 50, origin: { x: 1, y: 1 }, colors: CONFETTI_COLORS, ticks: 200 });
+      if (Date.now() < end) setTimeout(cannons, 110);
     };
     cannons();
   };
 
   const startConfettiRain = () => {
-    if (reduce) return;
+    if (reduce || lowPower) return;
     let raf = 0; let stopped = false;
     const start = Date.now();
     const tick = () => {
       if (stopped) return;
       const elapsed = Date.now() - start;
-      if (elapsed > 2200) return; // brief, refined rain
+      if (elapsed > 1800) return; // brief, refined rain
       confetti({
-        particleCount: 3,
+        particleCount: 2,
         angle: 270,
         spread: 90,
         startVelocity: 20,
@@ -125,14 +147,16 @@ export function CelebrationOverlay({
         origin: { x: Math.random(), y: -0.05 },
         colors: [...CONFETTI_COLORS, ...ACCENT],
         scalar: 0.9,
-        ticks: 260,
+        ticks: 220,
+        disableForReducedMotion: true,
         shapes: ['square', 'circle'],
       });
-      raf = window.setTimeout(tick, 130) as unknown as number;
+      raf = window.setTimeout(tick, 150) as unknown as number;
     };
     tick();
     rainStopRef.current = () => { stopped = true; clearTimeout(raf); };
   };
+
 
   // ---------- TIMELINE (tightened) ----------
   useEffect(() => {
@@ -197,111 +221,124 @@ export function CelebrationOverlay({
       transition={reduce ? { duration: 0.3 } : { duration: 0.26 }}
     >
       {/* ambient sparkles — subtle */}
-      {!reduce && <SparkleLayer />}
+      {!reduce && <SparkleLayer count={lowPower ? 8 : 16} />}
 
       {/* Center content */}
-      <div className="relative z-10 mx-auto flex h-full w-full max-w-md flex-col items-center justify-center gap-0 px-6 text-center">
-        {/* Seal + all radial FX share one perfectly centered anchor */}
-        <div className="relative flex h-[120px] w-[120px] items-center justify-center">
-          {/* impact flash */}
-          <AnimatePresence>
-            {phase !== 'drop' && !reduce && (
-              <motion.div
-                key="flash"
-                className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                initial={{ opacity: 0, scale: 0.6 }}
-                animate={{ opacity: [0, 0.85, 0], scale: [0.6, 1.4, 1.8] }}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
-                style={{
-                  width: 420, height: 420, borderRadius: '50%',
-                  background: 'radial-gradient(circle, rgba(250,204,21,0.32) 0%, transparent 65%)',
-                  filter: 'blur(8px)',
-                }}
-              />
+      <div
+        className="relative z-10 mx-auto flex h-full w-full flex-col items-center justify-center px-5 text-center sm:px-8"
+        style={{ ['--seal' as any]: 'clamp(76px, 18vw, 112px)' }}
+      >
+        <div className="flex w-full max-w-[min(92vw,34rem)] flex-col items-center gap-[clamp(0.75rem,2.2vw,1.25rem)]">
+          {/* Seal + all radial FX share one perfectly centered anchor */}
+          <div
+            ref={sealAnchorRef}
+            className="relative flex items-center justify-center"
+            style={{ width: 'var(--seal)', height: 'var(--seal)', transform: 'translateZ(0)' }}
+          >
+            {/* impact flash */}
+            <AnimatePresence>
+              {phase !== 'drop' && !reduce && (
+                <motion.div
+                  key="flash"
+                  className="pointer-events-none absolute left-1/2 top-1/2 rounded-full"
+                  initial={{ opacity: 0, scale: 0.6, x: '-50%', y: '-50%' }}
+                  animate={{ opacity: [0, 0.85, 0], scale: [0.6, 1.4, 1.8], x: '-50%', y: '-50%' }}
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                  style={{
+                    width: 'calc(var(--seal) * 3.6)',
+                    height: 'calc(var(--seal) * 3.6)',
+                    background: 'radial-gradient(circle, rgba(250,204,21,0.32) 0%, transparent 65%)',
+                    filter: 'blur(8px)',
+                    willChange: 'transform, opacity',
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            {/* radial burst lines on impact — same trigger + duration as rings */}
+            {!reduce && showBurstLines && <BurstLines />}
+
+            {/* expanding rings — concentric with the seal */}
+            {!reduce && phase !== 'drop' && (
+              <>
+                <Ring color="rgba(250,204,21,0.65)" delay={0} />
+                <Ring color="rgba(251,146,60,0.45)" delay={0.1} />
+                <Ring color="rgba(255,255,255,0.25)" delay={0.2} />
+              </>
             )}
-          </AnimatePresence>
 
-          {/* radial burst lines on impact */}
-          {!reduce && showBurstLines && <BurstLines />}
+            <StampSeal phase={phase} showCheck={showCheck} reduce={!!reduce} />
+          </div>
 
-          {/* expanding rings — concentric with the seal */}
-          {!reduce && phase !== 'drop' && (
-            <>
-              <Ring color="rgba(250,204,21,0.65)" delay={0} />
-              <Ring color="rgba(251,146,60,0.45)" delay={0.12} />
-              <Ring color="rgba(255,255,255,0.25)" delay={0.24} />
-            </>
-          )}
+          {/* Heading — personalized */}
+          <div className="mt-[clamp(0.75rem,3vw,1.5rem)] flex min-h-[2.6em] w-full items-center justify-center">
+            {showHeading && <LetterHeading text={headingText} reduce={!!reduce} />}
+          </div>
 
-          <StampSeal phase={phase} showCheck={showCheck} reduce={!!reduce} />
-        </div>
+          {/* Subtext — gold gradient, no emoji */}
+          <div className="flex min-h-[1.6em] w-full items-center justify-center">
+            {showSub && (
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+                className="font-medium tracking-wide"
+                style={{
+                  fontSize: 'clamp(0.95rem, 2.6vw, 1.15rem)',
+                  background: 'linear-gradient(90deg,#fde68a,#facc15,#fbbf24,#fde68a)',
+                  backgroundSize: '200% 100%',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  animation: 'shimmer 4s linear infinite',
+                }}
+              >
+                Your order is confirmed
+              </motion.p>
+            )}
+          </div>
 
-        {/* Heading — personalized */}
-        <div className="mt-8 flex min-h-[52px] w-full items-center justify-center">
-          {showHeading && <LetterHeading text={headingText} reduce={!!reduce} />}
-        </div>
+          {/* Order summary chips — dish count + total */}
+          <div className="flex min-h-[2.4em] w-full items-center justify-center">
+            {showSummary && (itemCount != null || totalAmount != null) && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+                className="flex w-full flex-wrap items-center justify-center gap-2"
+              >
+                {itemCount != null && (
+                  <SummaryChip label={`${itemCount} ${itemCount === 1 ? 'dish' : 'dishes'}`} />
+                )}
+                {totalAmount != null && (
+                  <SummaryChip label={`₹${totalAmount.toFixed(2)}`} accent />
+                )}
+              </motion.div>
+            )}
+          </div>
 
-        {/* Subtext — gold gradient, no emoji */}
-        <div className="mt-2 flex min-h-[28px] w-full items-center justify-center">
-          {showSub && (
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, ease: 'easeOut' }}
-              className="text-base md:text-lg font-medium tracking-wide"
-              style={{
-                background: 'linear-gradient(90deg,#fde68a,#facc15,#fbbf24,#fde68a)',
-                backgroundSize: '200% 100%',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                animation: 'shimmer 4s linear infinite',
-              }}
-            >
-              Your order is confirmed
-            </motion.p>
-          )}
-        </div>
+          {/* Order number scramble */}
+          <div className="flex min-h-[1.5em] w-full items-center justify-center px-2">
+            {showOrder && <OrderNumber value={`Order #${orderNumber}`} reduce={!!reduce} />}
+          </div>
 
-        {/* Order summary chips — dish count + total */}
-        <div className="mt-4 flex min-h-[38px] w-full items-center justify-center">
-          {showSummary && (itemCount != null || totalAmount != null) && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex flex-wrap items-center justify-center gap-2"
-            >
-              {itemCount != null && (
-                <SummaryChip label={`${itemCount} ${itemCount === 1 ? 'dish' : 'dishes'}`} />
-              )}
-              {totalAmount != null && (
-                <SummaryChip label={`₹${totalAmount.toFixed(2)}`} accent />
-              )}
-            </motion.div>
-          )}
-        </div>
-
-        {/* Order number scramble */}
-        <div className="mt-3 flex min-h-[24px] w-full items-center justify-center">
-          {showOrder && <OrderNumber value={`Order #${orderNumber}`} reduce={!!reduce} />}
-        </div>
-
-        {/* Pill */}
-        <div className="mt-5 flex min-h-[44px] w-full items-center justify-center">
-          {showPill && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35 }}
-              className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-sm text-amber-200"
-              style={{ boxShadow: '0 0 24px rgba(250,204,21,0.3)' }}
-            >
-              <span>Preparing your receipt</span>
-              <DotPulse />
-            </motion.div>
-          )}
+          {/* Pill */}
+          <div className="mt-[clamp(0.25rem,1.5vw,0.75rem)] flex min-h-[2.75rem] w-full items-center justify-center">
+            {showPill && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="inline-flex max-w-full items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-[clamp(0.8rem,2.2vw,0.9rem)] text-amber-200"
+                style={{ boxShadow: '0 0 24px rgba(250,204,21,0.3)' }}
+              >
+                <span className="whitespace-nowrap">Preparing your receipt</span>
+                <DotPulse />
+              </motion.div>
+            )}
+          </div>
         </div>
       </div>
+
 
 
       {/* Bottom toast */}
@@ -309,11 +346,14 @@ export function CelebrationOverlay({
         {showToast && (
           <motion.div
             key="toast"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 20, x: '-50%' }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="absolute bottom-6 left-1/2 z-20 w-[min(92vw,420px)] -translate-x-1/2 overflow-hidden rounded-xl bg-white/95 shadow-2xl backdrop-blur"
+            className="absolute left-1/2 z-20 w-[min(92vw,420px)] overflow-hidden rounded-xl bg-white/95 shadow-2xl backdrop-blur"
+            style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+
+
           >
             <div className="flex items-center gap-3 px-4 py-3">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white">
@@ -360,14 +400,15 @@ function StampSeal({ phase, showCheck, reduce }: { phase: 'drop' | 'impact' | 's
 
   return (
     <motion.div
-      initial={reduce ? { opacity: 0 } : { y: -260, scaleX: 1, scaleY: 1 }}
+      initial={reduce ? { opacity: 0 } : { y: '-260%', scaleX: 1, scaleY: 1 }}
       animate={animate}
       transition={transition}
-      className="relative"
+      className="relative h-full w-full"
       style={{
-        width: 96, height: 96, borderRadius: '50%',
+        borderRadius: '50%',
         background: 'linear-gradient(145deg,#fde68a,#f59e0b)',
         boxShadow: '0 18px 40px -8px rgba(245,158,11,0.55), 0 0 0 4px rgba(255,255,255,0.06) inset',
+        willChange: 'transform',
       }}
     >
       <svg viewBox="0 0 64 64" className="absolute inset-0 h-full w-full">
@@ -388,16 +429,19 @@ function StampSeal({ phase, showCheck, reduce }: { phase: 'drop' | 'impact' | 's
 }
 
 function Ring({ color, delay }: { color: string; delay: number }) {
+  // Fills the seal anchor exactly, so scaling keeps it perfectly concentric
+  // (no translate classes that framer's transform would override).
   return (
     <motion.div
-      className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-      style={{ width: 120, height: 120, border: `2px solid ${color}` }}
-      initial={{ scale: 0.25, opacity: 0.9 }}
+      className="pointer-events-none absolute inset-0 rounded-full"
+      style={{ border: `2px solid ${color}`, willChange: 'transform, opacity' }}
+      initial={{ scale: 0.3, opacity: 0.9 }}
       animate={{ scale: 3.2, opacity: 0 }}
       transition={{ duration: 0.85, ease: 'easeOut', delay }}
     />
   );
 }
+
 
 function LetterHeading({ text, reduce }: { text: string; reduce: boolean }) {
   // Split into words so long names wrap cleanly instead of breaking mid-word.
@@ -405,9 +449,14 @@ function LetterHeading({ text, reduce }: { text: string; reduce: boolean }) {
   let charIndex = 0;
   return (
     <h1
-      className="mx-auto max-w-full text-balance text-3xl md:text-5xl font-bold leading-tight text-white tracking-tight"
-      style={{ textShadow: '0 0 28px rgba(250,204,21,0.4)' }}
+      className="mx-auto w-full max-w-full text-balance font-bold leading-[1.15] tracking-tight text-white"
+      style={{
+        textShadow: '0 0 28px rgba(250,204,21,0.4)',
+        fontSize: 'clamp(1.6rem, 6.4vw, 3rem)',
+        overflowWrap: 'anywhere',
+      }}
     >
+
       {words.map((word, w) => (
         <span key={w} className="inline-block whitespace-nowrap">
           {word.split('').map((c) => {
@@ -490,7 +539,7 @@ function OrderNumber({ value, reduce }: { value: string; reduce: boolean }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="font-mono text-amber-300/90 tracking-wider text-sm"
+      className="max-w-full break-all font-mono text-[clamp(0.72rem,2.6vw,0.875rem)] tracking-wider text-amber-300/90"
     >
       {display.join('')}
     </motion.p>
@@ -512,18 +561,19 @@ function DotPulse() {
   );
 }
 
-function SparkleLayer() {
+function SparkleLayer({ count = 16 }: { count?: number }) {
   const sparkles = useMemo(
     () =>
-      Array.from({ length: 18 }, () => ({
+      Array.from({ length: count }, () => ({
         left: Math.random() * 100,
         top: Math.random() * 70,
         size: 1.5 + Math.random() * 2,
         delay: Math.random() * 3,
         duration: 1.6 + Math.random() * 2,
       })),
-    []
+    [count]
   );
+
   return (
     <div className="pointer-events-none absolute inset-0">
       {sparkles.map((s, i) => (
@@ -546,30 +596,42 @@ function SparkleLayer() {
 }
 
 function BurstLines() {
+  // Deterministic lengths (no re-randomising between renders) scaled to the seal size.
   const lines = useMemo(
-    () => Array.from({ length: 14 }, (_, i) => ({ angle: (360 / 14) * i, len: 120 + Math.random() * 80 })),
+    () =>
+      Array.from({ length: 14 }, (_, i) => ({
+        angle: (360 / 14) * i,
+        factor: i % 2 === 0 ? 1.45 : 1.1,
+      })),
     []
   );
   return (
-    <div className="pointer-events-none absolute left-1/2 top-1/2 h-0 w-0 -translate-x-1/2 -translate-y-1/2">
+    <div className="pointer-events-none absolute left-1/2 top-1/2 h-0 w-0" style={{ transform: 'translate(-50%, -50%)' }}>
       {lines.map((l, i) => (
-        <motion.div
+        // Rotation lives on the wrapper so framer's scaleX transform can't override it.
+        <div
           key={i}
           className="absolute left-0 top-0 origin-left"
-          style={{
-            width: l.len,
-            height: 2,
-            marginTop: -1,
-            background: 'linear-gradient(90deg, rgba(250,204,21,0.9), transparent)',
-            transform: `rotate(${l.angle}deg)`,
-            borderRadius: 2,
-          }}
-          initial={{ scaleX: 0, opacity: 0 }}
-          animate={{ scaleX: [0, 1, 1], opacity: [0, 1, 0] }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
+          style={{ transform: `rotate(${l.angle}deg)` }}
+        >
+          <motion.div
+            style={{
+              width: `calc(var(--seal) * ${l.factor})`,
+              height: 2,
+              marginTop: -1,
+              background: 'linear-gradient(90deg, rgba(250,204,21,0.9), transparent)',
+              borderRadius: 2,
+              transformOrigin: 'left center',
+              willChange: 'transform, opacity',
+            }}
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: [0, 1, 1], opacity: [0, 1, 0] }}
+            transition={{ duration: 0.85, ease: 'easeOut' }}
+          />
+        </div>
       ))}
     </div>
+
   );
 
 }
