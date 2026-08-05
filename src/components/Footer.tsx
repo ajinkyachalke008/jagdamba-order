@@ -1,7 +1,7 @@
 import { useCart } from '@/contexts/CartContext';
 import { MapPin, Phone, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import logo from '@/assets/jagdamba-logo.jpg';
+import logo from '@/assets/jagdamba-logo.png';
 import { t } from '@/lib/translations';
 
 export const Footer = () => {
