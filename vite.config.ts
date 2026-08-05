@@ -15,12 +15,13 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
+      includeAssets: ["favicon.png", "icon-192-v2.png", "icon-512-v2.png", "icon-maskable-512-v2.png"],
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/],
         globPatterns: ["**/*.{js,css,html,ico,png,jpg,svg,woff2}"],
       },
       manifest: {
+        id: "/",
         name: "Hotel Jagdamba - Pure Vegetarian Parcel Service",
         short_name: "Jagdamba",
         description: "Pure Vegetarian Parcel Service in Masur. Order online for fresh, delicious meals.",
@@ -32,17 +33,19 @@ export default defineConfig(({ mode }) => ({
         scope: "/",
         icons: [
           {
-            src: "/pwa-192x192.png",
+            src: "/icon-192-v2.png",
             sizes: "192x192",
             type: "image/png",
+            purpose: "any",
           },
           {
-            src: "/pwa-512x512.png",
+            src: "/icon-512-v2.png",
             sizes: "512x512",
             type: "image/png",
+            purpose: "any",
           },
           {
-            src: "/pwa-512x512.png",
+            src: "/icon-maskable-512-v2.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
