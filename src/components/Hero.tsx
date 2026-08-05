@@ -2,7 +2,7 @@ import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, ShoppingBag, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import logo from '@/assets/jagdamba-logo.png';
+import logo from '@/assets/jagdamba-logo.jpg';
 import { t } from '@/lib/translations';
 
 export const Hero = () => {
