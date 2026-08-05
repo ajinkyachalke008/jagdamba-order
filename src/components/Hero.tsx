@@ -2,7 +2,7 @@ import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, ShoppingBag, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import logoAsset from '@/assets/jagdamba-logo.png.asset.json';
+import logo from '@/assets/jagdamba-logo.png';
 import { t } from '@/lib/translations';
 
 export const Hero = () => {
@@ -28,7 +28,7 @@ export const Hero = () => {
       <div className="relative z-10 container mx-auto px-4 text-center">
         <div className="mb-8 flex justify-center animate-scale-in">
           <img 
-            src={logoAsset.url} 
+            src={logo} 
             alt="Hotel Jagdamba" 
             className="h-32 md:h-48 w-auto animate-glow-pulse"
           />

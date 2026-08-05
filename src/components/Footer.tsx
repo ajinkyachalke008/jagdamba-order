@@ -1,7 +1,7 @@
 import { useCart } from '@/contexts/CartContext';
 import { MapPin, Phone, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import logoAsset from '@/assets/jagdamba-logo.png.asset.json';
+import logo from '@/assets/jagdamba-logo.png';
 import { t } from '@/lib/translations';
 
 export const Footer = () => {
@@ -13,7 +13,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center md:text-left">
             <img 
-              src={logoAsset.url} 
+              src={logo} 
               alt="Hotel Jagdamba" 
               className="h-20 w-auto mx-auto md:mx-0 mb-4"
             />

@@ -1,7 +1,7 @@
 import { Phone, ShoppingCart, Shield } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { Link } from 'react-router-dom';
-import logoAsset from '@/assets/jagdamba-logo.png.asset.json';
+import logo from '@/assets/jagdamba-logo.png';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from './ThemeToggle';
@@ -22,7 +22,7 @@ export const Header = () => {
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <img 
-              src={logoAsset.url} 
+              src={logo} 
               alt="Hotel Jagdamba" 
               className="h-12 md:h-16 w-auto animate-glow-pulse"
             />
