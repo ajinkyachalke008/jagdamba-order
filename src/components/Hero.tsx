@@ -28,7 +28,7 @@ export const Hero = () => {
       <div className="relative z-10 container mx-auto px-4 text-center">
         <div className="mb-8 flex justify-center animate-scale-in">
           <img 
-            src={logo} 
+            src={logoAsset.url} 
             alt="Hotel Jagdamba" 
             className="h-32 md:h-48 w-auto animate-glow-pulse"
           />
