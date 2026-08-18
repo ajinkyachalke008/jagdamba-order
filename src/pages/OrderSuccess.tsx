@@ -12,6 +12,7 @@ import { useCart } from '@/contexts/CartContext';
 import { t } from '@/lib/translations';
 import jsPDF from 'jspdf';
 import { CelebrationOverlay as NewCelebrationOverlay } from '@/components/CelebrationOverlay';
+import { PrinterMachine } from '@/components/PrinterMachine';
 
 /* ---------- date helper ---------- */
 function formatDate(iso: string): string {
