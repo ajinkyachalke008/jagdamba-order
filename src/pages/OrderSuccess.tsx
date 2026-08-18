@@ -679,7 +679,15 @@ export default function OrderSuccess() {
           />
         )}
 
-        {!showCelebration && (
+        {!showCelebration && showPrinter && (
+          <PrinterMachine
+            order={orderData}
+            language={language}
+            onDone={() => setShowPrinter(false)}
+          />
+        )}
+
+        {!showCelebration && !showPrinter && (
           <>
             <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1, cursor: 'grab', touchAction: 'none', WebkitUserSelect: 'none', userSelect: 'none' }} />
             <div id="touch-fx-layer" style={{ position: 'absolute', inset: 0, zIndex: 11, pointerEvents: 'none', overflow: 'hidden' }} />
