@@ -12,6 +12,7 @@ import { useCart } from '@/contexts/CartContext';
 import { t } from '@/lib/translations';
 import jsPDF from 'jspdf';
 import { CelebrationOverlay as NewCelebrationOverlay } from '@/components/CelebrationOverlay';
+import { PrinterMachine } from '@/components/PrinterMachine';
 
 /* ---------- date helper ---------- */
 function formatDate(iso: string): string {
@@ -264,6 +265,7 @@ export default function OrderSuccess() {
   const [orderData, setOrderData] = useState<any>(null);
   const [showCelebration, setShowCelebration] = useState(true);
   const [webglFailed, setWebglFailed] = useState(false);
+  const [showPrinter, setShowPrinter] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const indicatorRef = useRef<HTMLDivElement>(null);
 
@@ -313,7 +315,7 @@ export default function OrderSuccess() {
 
   // WebGL cloth simulation
   useEffect(() => {
-    if (!orderData || !canvasRef.current || showCelebration) return;
+    if (!orderData || !canvasRef.current || showCelebration || showPrinter) return;
 
     const glCanvas = canvasRef.current;
     const gl = glCanvas.getContext('webgl', { antialias: true, alpha: false });
@@ -617,7 +619,7 @@ export default function OrderSuccess() {
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
     };
-  }, [orderData, showCelebration, language]);
+  }, [orderData, showCelebration, showPrinter, language]);
 
   const handleDownloadPDF = () => {
     if (!orderData) return;
@@ -677,7 +679,15 @@ export default function OrderSuccess() {
           />
         )}
 
-        {!showCelebration && (
+        {!showCelebration && showPrinter && (
+          <PrinterMachine
+            order={orderData}
+            language={language}
+            onDone={() => setShowPrinter(false)}
+          />
+        )}
+
+        {!showCelebration && !showPrinter && (
           <>
             <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1, cursor: 'grab', touchAction: 'none', WebkitUserSelect: 'none', userSelect: 'none' }} />
             <div id="touch-fx-layer" style={{ position: 'absolute', inset: 0, zIndex: 11, pointerEvents: 'none', overflow: 'hidden' }} />
