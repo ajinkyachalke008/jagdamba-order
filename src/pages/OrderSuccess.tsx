@@ -315,7 +315,7 @@ export default function OrderSuccess() {
 
   // WebGL cloth simulation
   useEffect(() => {
-    if (!orderData || !canvasRef.current || showCelebration) return;
+    if (!orderData || !canvasRef.current || showCelebration || showPrinter) return;
 
     const glCanvas = canvasRef.current;
     const gl = glCanvas.getContext('webgl', { antialias: true, alpha: false });
