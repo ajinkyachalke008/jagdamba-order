@@ -619,7 +619,7 @@ export default function OrderSuccess() {
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
     };
-  }, [orderData, showCelebration, language]);
+  }, [orderData, showCelebration, showPrinter, language]);
 
   const handleDownloadPDF = () => {
     if (!orderData) return;
