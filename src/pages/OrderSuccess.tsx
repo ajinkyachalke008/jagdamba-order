@@ -265,6 +265,7 @@ export default function OrderSuccess() {
   const [orderData, setOrderData] = useState<any>(null);
   const [showCelebration, setShowCelebration] = useState(true);
   const [webglFailed, setWebglFailed] = useState(false);
+  const [showPrinter, setShowPrinter] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const indicatorRef = useRef<HTMLDivElement>(null);
 
