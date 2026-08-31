@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      discounts: {
+        Row: {
+          active: boolean
+          code: string | null
+          created_at: string
+          description: string | null
+          discount_type: string
+          ends_at: string | null
+          id: string
+          max_discount: number | null
+          min_order: number
+          starts_at: string | null
+          title: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          ends_at?: string | null
+          id?: string
+          max_discount?: number | null
+          min_order?: number
+          starts_at?: string | null
+          title: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          active?: boolean
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          ends_at?: string | null
+          id?: string
+          max_discount?: number | null
+          min_order?: number
+          starts_at?: string | null
+          title?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
       menu_availability: {
         Row: {
           created_at: string
@@ -31,6 +79,30 @@ export type Database = {
           created_at?: string
           item_id?: string
           sold_out?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      menu_prices: {
+        Row: {
+          created_at: string
+          item_id: string
+          original_price: number | null
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          item_id: string
+          original_price?: number | null
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          item_id?: string
+          original_price?: number | null
+          price?: number
           updated_at?: string
         }
         Relationships: []
