@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useCart, MenuItem } from '@/contexts/CartContext';
+import { MenuItem } from '@/contexts/CartContext';
 
 /**
  * Live list of dishes added by the admin from the dashboard.
  * Updates instantly (realtime) when dishes are added, edited or removed.
  */
 export function useCustomMenu() {
-  const { language } = useCart();
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
 
