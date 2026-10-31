@@ -10,6 +10,7 @@ export interface MenuItem {
   descriptionHi?: string;
   price: number;
   category: string;
+  originalPrice?: number;
 }
 
 export interface CartItem extends MenuItem {
