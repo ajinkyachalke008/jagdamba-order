@@ -37,6 +37,17 @@ serve(async (req) => {
       status?: string;
       item_id?: string;
       sold_out?: boolean;
+      price?: number;
+      original_price?: number | null;
+      id?: string;
+      name_en?: string;
+      name_mr?: string;
+      name_hi?: string | null;
+      description_en?: string | null;
+      description_mr?: string | null;
+      description_hi?: string | null;
+      category?: string;
+      active?: boolean;
     } = {};
     try {
       body = await req.json();
@@ -108,6 +119,97 @@ serve(async (req) => {
           { item_id: body.item_id, sold_out: body.sold_out, updated_at: new Date().toISOString() },
           { onConflict: "item_id" },
         );
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === "prices_list") {
+      const { data, error } = await supabase.from("menu_prices").select("*");
+      if (error) return json({ error: error.message }, 500);
+      return json({ prices: data ?? [] });
+    }
+
+    if (action === "set_price") {
+      if (!body.item_id || typeof body.price !== "number" || !isFinite(body.price) || body.price < 0) {
+        return json({ error: "item_id and a valid price required" }, 400);
+      }
+      const { error } = await supabase
+        .from("menu_prices")
+        .upsert(
+          {
+            item_id: body.item_id,
+            price: body.price,
+            original_price: body.original_price ?? null,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "item_id" }
+        );
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === "reset_price") {
+      if (!body.item_id) return json({ error: "item_id required" }, 400);
+      const { error } = await supabase
+        .from("menu_prices")
+        .delete()
+        .eq("item_id", body.item_id);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === "menu_add") {
+      if (!body.name_en || !body.name_mr || typeof body.price !== "number" || !isFinite(body.price) || body.price < 0) {
+        return json({ error: "English name, Marathi name and a valid price required" }, 400);
+      }
+      const row = {
+        name_en: body.name_en.trim(),
+        name_mr: body.name_mr.trim(),
+        name_hi: body.name_hi?.trim() || null,
+        description_en: body.description_en?.trim() || null,
+        description_mr: body.description_mr?.trim() || null,
+        description_hi: body.description_hi?.trim() || null,
+        price: body.price,
+        category: (body.category || "Special").trim() || "Special",
+        active: body.active !== false,
+      };
+      const { data, error } = await supabase
+        .from("custom_menu_items")
+        .insert(row)
+        .select()
+        .single();
+      if (error) return json({ error: error.message }, 500);
+      return json({ item: data });
+    }
+
+    if (action === "menu_update") {
+      if (!body.id) return json({ error: "id required" }, 400);
+      const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if (body.name_en?.trim()) patch.name_en = body.name_en.trim();
+      if (body.name_mr?.trim()) patch.name_mr = body.name_mr.trim();
+      if (body.name_hi !== undefined) patch.name_hi = body.name_hi?.trim() || null;
+      if (body.description_en !== undefined) patch.description_en = body.description_en?.trim() || null;
+      if (body.description_mr !== undefined) patch.description_mr = body.description_mr?.trim() || null;
+      if (body.description_hi !== undefined) patch.description_hi = body.description_hi?.trim() || null;
+      if (typeof body.price === "number" && isFinite(body.price) && body.price >= 0) patch.price = body.price;
+      if (body.category?.trim()) patch.category = body.category.trim();
+      if (typeof body.active === "boolean") patch.active = body.active;
+      const { data, error } = await supabase
+        .from("custom_menu_items")
+        .update(patch)
+        .eq("id", body.id)
+        .select()
+        .single();
+      if (error) return json({ error: error.message }, 500);
+      return json({ item: data });
+    }
+
+    if (action === "menu_delete") {
+      if (!body.id) return json({ error: "id required" }, 400);
+      const { error } = await supabase
+        .from("custom_menu_items")
+        .delete()
+        .eq("id", body.id);
       if (error) return json({ error: error.message }, 500);
       return json({ ok: true });
     }
